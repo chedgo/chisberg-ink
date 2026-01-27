@@ -1,12 +1,10 @@
 import { Coordinates } from '@/types/Coordinates';
 import { destinationSchema, partialDestination } from '@/types/Destination';
 import { useCallback, useState } from 'react';
-import { experimental_useObject as useObject } from 'ai/react';
+import { experimental_useObject as useObject } from '@ai-sdk/react';
 
 export function useFetchDestinations() {
-  const { submit, isLoading, object } = useObject<{
-    destinations: partialDestination[];
-  }>({
+  const { submit, isLoading, object } = useObject({
     api: '/api/locations',
     schema: destinationSchema,
   });

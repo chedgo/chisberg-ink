@@ -1,12 +1,10 @@
 import { questionSchema, PartialQuestion } from '@/types/Interviews';
 import { useCallback, useState } from 'react';
-import { experimental_useObject as useObject } from 'ai/react';
+import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
 
 export function useGenerateQuestionList() {
-  const { submit, isLoading, object } = useObject<{
-    questions: PartialQuestion[];
-  }>({
+  const { submit, isLoading, object } = useObject({
     api: '/api/question-list',
     schema: z.object({ questions: questionSchema.array() }),
   });

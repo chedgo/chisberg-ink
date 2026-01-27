@@ -1,12 +1,10 @@
 import { colorStorySchema, PartialColorStory } from '@/types/ColorStory';
 import { useCallback, useState } from 'react';
-import { experimental_useObject as useObject } from 'ai/react';
+import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { Color } from '@/types/Color';
 
 export function useFetchColorStory() {
-  const { submit, isLoading, object } = useObject<{
-    text: PartialColorStory['text'];
-  }>({
+  const { submit, isLoading, object } = useObject({
     api: '/api/color-stories',
     schema: colorStorySchema,
   });

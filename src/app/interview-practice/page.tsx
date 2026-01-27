@@ -68,7 +68,7 @@ export default function InterviewPractice() {
       <div className="flex-1 overflow-hidden">
         <InterviewSimulator
           questions={questions.filter(
-            (q): q is Question => q !== undefined && typeof q?.text === 'string'
+            (q: Partial<Question> | undefined): q is Question => q !== undefined && typeof q?.text === 'string'
           )}
         />
       </div>
@@ -141,7 +141,7 @@ export default function InterviewPractice() {
       {questions.length > 0 && (
         <div>
           <ol className="list-decimal pl-4 mt-4">
-            {questions.map((question) => {
+            {questions.map((question: Partial<Question> | undefined) => {
               if (!question?.text) return null;
               return (
                 <li key={question.text} className="mb-2">

@@ -9,7 +9,7 @@ const tools = {
   saveEvaluation: {
     description:
       'after each question, save an evaluation of the candidate and a score for the question to the database',
-    parameters: z.object({ evaluation: z.string(), score: z.number() }),
+    inputSchema: z.object({ evaluation: z.string(), score: z.number() }),
     execute: async ({
       evaluation,
       score,
@@ -24,7 +24,7 @@ const tools = {
   },
   provideFeedback: {
     description: 'provide feedback to the candidate after each question',
-    parameters: z.object({ feedback: z.string() }),
+    inputSchema: z.object({ feedback: z.string() }),
   },
 };
 
@@ -91,5 +91,5 @@ export async function POST(req: Request) {
     tools,
   });
 
-  return result.toDataStreamResponse();
+  return result.toUIMessageStreamResponse();
 }

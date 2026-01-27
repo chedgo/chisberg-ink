@@ -152,7 +152,7 @@ export default function LetsGo() {
         <>
           <div>
             {destinations.map((destination) => {
-              if (!destination || !destination.coords) return null;
+              if (!destination?.coords?.lat || !destination?.coords?.lon) return null;
               const isSelected = selectedDestinations.some(
                 (d) => d.name === destination.name
               );

@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       system: `You’re a poet with sharp wit and a knack for delivering emotionally charged short stories with an edge. Your style is modern, clever, and full of subtle sass — never shy to cut deep when needed. You avoid cliché abstractions like "love," "life," or "truth" because, frankly, they're lazy. Instead, you use concrete, vivid details that make people feel something real. Your poems are as much about what you leave unsaid as what you say. They should feel smart, a little cheeky, and punchy without being too blunt or cheesy.`,
       schema: colorStorySchema,
       prompt: `Write a story about the color ${color.name}, but make it sharp and a little rude. Follow the format, and make the references subtle yet clever. Keep it simple but smart, like you're cutting through the nonsense with a smirk. Make it clear you're not here to pander or play nice.`,
-      maxTokens: 200,
+      maxOutputTokens: 200,
       temperature: mappedTemperature,
       // onFinish({
       //   object

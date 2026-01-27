@@ -1,14 +1,34 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useChat } from 'ai/react';
-import { Message as MessageType } from 'ai';
+import { useChat } from '@ai-sdk/react';
+import { UIMessage as MessageType, DefaultChatTransport } from 'ai';
 import { Question } from '@/types/Interviews';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 
 interface MessageProps {
   message: MessageType;
 }
+
+// Helper to extract text content from message parts
+const getMessageText = (message: MessageType): string => {
+  return message.parts
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map((part) => part.text)
+    .join('');
+};
+
+// Helper to find tool invocation feedback in message parts
+const getFeedbackFromParts = (message: MessageType): string | null => {
+  for (const part of message.parts) {
+    // Tool parts have type like 'tool-provideFeedback'
+    if (part.type === 'tool-provideFeedback' && 'input' in part) {
+      const input = part.input as { feedback?: string };
+      if (input?.feedback) return input.feedback;
+    }
+  }
+  return null;
+};
 
 const FeedbackMessage = ({ feedback }: { feedback: string }) => {
   const [feedbackExpanded, setFeedbackExpanded] = useState(false);
@@ -27,28 +47,26 @@ const FeedbackMessage = ({ feedback }: { feedback: string }) => {
     </div>
   );
 };
-const normalMessage = ({ message }: MessageProps) => {
+const NormalMessage = ({ message }: MessageProps) => {
+  const text = getMessageText(message);
   return (
     <div className="bg-primary text-white w-fit rounded-md p-4 mx-4 flex gap-2">
       <div> {message.role === 'user' ? 'You: ' : 'AI: '}</div>
-      <div className="whitespace-pre-wrap -mt-6 pt-6">{message.content}</div>
+      <div className="whitespace-pre-wrap -mt-6 pt-6">{text}</div>
     </div>
   );
-};  
+};
 
 const Message = ({ message }: MessageProps) => {
-  if (!message.content) return null;
-  if (
-    message.content === '' &&
-    message.toolInvocations?.[0]?.toolName === 'provideFeedback'
-  ) {
-    return (
-      <FeedbackMessage
-        feedback={message.toolInvocations?.[0]?.args.feedback as string}
-      />
-    );
+  const text = getMessageText(message);
+  const feedback = getFeedbackFromParts(message);
+
+  if (!text && !feedback) return null;
+
+  if (!text && feedback) {
+    return <FeedbackMessage feedback={feedback} />;
   }
-  return normalMessage({ message });
+  return <NormalMessage message={message} />;
 };
   
 interface InterviewSimulatorProps {
@@ -66,57 +84,65 @@ export const InterviewSimulator = ({ questions }: InterviewSimulatorProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<ErrorResponse | null>(null);
+  const [input, setInput] = useState('');
 
   const filteredQuestions = questions.filter((q): q is Question => !!q?.text);
   const {
     messages,
-    input,
-    handleInputChange,
-    handleSubmit: originalHandleSubmit,
-    reload,
-    isLoading,
+    sendMessage,
+    regenerate,
+    status,
+    error: chatError,
   } = useChat({
-    keepLastMessageOnError: true,
-    maxSteps: 1,
-    api: '/api/chat',
-    body: {
-      questions: filteredQuestions,
-    },
-    onError: (error) => {
-      try {
-        const errorData = JSON.parse(error.message) as ErrorResponse;
-        setError(errorData);
-      } catch {
-        setError({
-          error: 'Error',
-          message: error.message,
-        });
-      }
-    },
-    async onToolCall({ toolCall }) {
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+      body: {
+        questions: filteredQuestions,
+      },
+    }),
+    onToolCall: ({ toolCall }) => {
       if (toolCall.toolName === 'provideFeedback') {
         console.log('client side call- feedback:', toolCall);
-        return {
-          result: 'Feedback saved successfully!',
-          toolCallId: toolCall.toolCallId,
-        };
       }
     },
   });
 
+  const isLoading = status === 'streaming' || status === 'submitted';
 
   useEffect(() => {
-    //if the last message is empty, we assume it was a function call, and we send a new call to the server.
-    if (messages[messages.length - 1]?.content === '' && !isLoading) {
-      console.log('reloading');
-      reload();
+    if (chatError) {
+      try {
+        const errorData = JSON.parse(chatError.message) as ErrorResponse;
+        setError(errorData);
+      } catch {
+        setError({
+          error: 'Error',
+          message: chatError.message,
+        });
+      }
     }
-  }, [messages, isLoading]);
+  }, [chatError]);
+
+  useEffect(() => {
+    //if the last message has no text, we assume it was a function call, and we send a new call to the server.
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && getMessageText(lastMessage) === '' && !isLoading) {
+      console.log('regenerating');
+      regenerate();
+    }
+  }, [messages, isLoading, regenerate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    originalHandleSubmit(e);
+    if (input.trim()) {
+      sendMessage({ text: input });
+      setInput('');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
   };
 
   useAutoScroll({

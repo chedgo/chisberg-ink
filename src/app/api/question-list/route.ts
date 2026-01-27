@@ -49,7 +49,7 @@ export async function POST(req: Request) {
        \`\`\`${jobPost}\`\`\`
        \`\`\`${companyProfile}\`\`\`
        \`\`\`${resume}\`\`\``,
-      maxTokens: 500,
+      maxOutputTokens: 500,
       // onFinish({
       //   object
       // }) {
