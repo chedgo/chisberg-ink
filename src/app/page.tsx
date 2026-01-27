@@ -138,40 +138,6 @@ export default function Page() {
             </ListItem>
           </ul>
         </div>
-        <SectionTitle className="mt-8">Tools, Toys, Ideas</SectionTitle>
-        <div className="mt-2 text-accent pl-4 lg:pl-10 pr-8">
-          <ul className="list-disc list-outside flex flex-col gap-3 mt-14 pl-5">
-            <ListItem>
-              <Link
-                className="text-primary font-bold underline hover:text-accent"
-                href={'/lets-go'}
-              >
-                Let&apos;s Go
-              </Link>
-              : An LLM powered tool to make quick decisions and get out of the
-              house
-            </ListItem>
-            <ListItem>
-              <Link
-                className="text-primary font-bold underline hover:text-accent"
-                href={'/color-stories'}
-              >
-                Color Stories
-              </Link>
-              : A tool to generate short nonsense about colors
-            </ListItem>
-            <ListItem>
-              <Link
-                className="text-primary font-bold underline hover:text-accent"
-                href={'/interview-practice'}
-              >
-                Interview Practice Tool
-              </Link>
-              : An LLM powered interview practice tool that coaches you through
-              a mock interview
-            </ListItem>
-          </ul>
-        </div>
       </div>
     </div>
   );
