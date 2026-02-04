@@ -13,6 +13,14 @@ import {
   SHEET_X,
   TOTAL_W,
   TOTAL_H,
+  LOGO_X,
+  LOGO_Y,
+  LOGO_W,
+  LOGO_ROT,
+  TEXT_X,
+  TEXT_Y,
+  TEXT_W,
+  FONT_SIZE,
 } from './layout';
 
 export interface PlacedFlower {
@@ -139,16 +147,16 @@ export function ArrangerCanvas({
     }
   };
 
-  // Logo and text positioning (relative to viewport, scaled with canvas)
-  const logoX = dims.w * 0.19;
-  const logoY = dims.h * 0.24;
-  const logoWidth = Math.min(dims.w * 0.250);
+  // Logo and text positioning (unified with card scaling)
+  const logoX = cardOffsetX + LOGO_X * s;
+  const logoY = cardOffsetY + LOGO_Y * s;
+  const logoWidth = LOGO_W * s;
   const logoHeight = logoImg ? (logoWidth / logoImg.width) * logoImg.height : 0;
-  const logoRotation = -20;
-  const textX = dims.w * 0.2;
-  const textY = dims.h * 0.5
-  const textWidth = Math.min(dims.w * 0.13, 144);
-  const fontSize = Math.max(11, Math.min(13, dims.w * 0.01));
+  const logoRotation = LOGO_ROT;
+  const textX = cardOffsetX + TEXT_X * s;
+  const textY = cardOffsetY + TEXT_Y * s;
+  const textWidth = TEXT_W * s;
+  const fontSize = FONT_SIZE * s;
 
   const instructionsText = `   DESIGN
   YOUR OWN
