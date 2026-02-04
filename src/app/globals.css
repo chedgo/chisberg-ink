@@ -4,6 +4,15 @@ layer(base);
 
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Junicode';
+  src: url('/fonts/JunicodeVF-Italic.woff2') format('woff2');
+  font-style: italic;
+  font-weight: 300 700;
+  font-stretch: 75% 125%;
+  font-display: swap;
+}
+
 @theme {
   --color-primary: #2400ff;
   --color-secondary: #799351;
@@ -15,6 +24,7 @@ layer(base);
   --font-tenon: 'Tenon', serif;
   --font-tenon-bold: 'Tenon', serif;
   --font-tenon-extrabold: 'Tenon', serif;
+  --font-junicode: 'Junicode', serif;
 }
 
 /*
@@ -74,4 +84,10 @@ layer(base);
   font-family: 'Tenon', sans-serif;
   font-weight: 800;
   font-style: normal;
+}
+@utility junicode-italic-condensed {
+  font-family: 'Junicode', serif;
+  font-style: italic;
+  font-stretch: condensed;
+  font-weight: 400;
 }
