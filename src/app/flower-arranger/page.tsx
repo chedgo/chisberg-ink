@@ -121,7 +121,7 @@ export default function FlowerArrangerPage() {
   }, []);
 
   return (
-    <div className="h-screen overflow-hidden bg-[#d4d88b] relative">
+    <div className="h-screen overflow-hidden relative" style={{ backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}>
       {/* Full-viewport canvas */}
       <ArrangerCanvas
         flowers={flowers}
