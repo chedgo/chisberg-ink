@@ -27,13 +27,6 @@ function sheetToStage(sx: number, sy: number) {
   };
 }
 
-function stageToSheet(x: number, y: number) {
-  return {
-    sx: (x * TOTAL_W - SHEET_X) / SHEET_W,
-    sy: (y * TOTAL_H - PAD) / SHEET_H,
-  };
-}
-
 const FLOWER_DEFS = [
   {
     id: 'flowers_1',
@@ -111,19 +104,12 @@ const INITIAL_FLOWERS: PlacedFlower[] = FLOWER_DEFS.map((f) => {
 export default function FlowerArrangerPage() {
   const [flowers, setFlowers] = useState<PlacedFlower[]>(INITIAL_FLOWERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [lastTouched, setLastTouched] = useState<{ id: string; x: number; y: number } | null>(null);
-
   const handleUpdateFlower = useCallback(
     (id: string, attrs: { x?: number; y?: number; rotation?: number }) => {
       setFlowers((prev) =>
-        prev.map((flower) => {
-          if (flower.id === id) {
-            const updated = { ...flower, ...attrs };
-            setLastTouched({ id, x: updated.x, y: updated.y });
-            return updated;
-          }
-          return flower;
-        })
+        prev.map((flower) =>
+          flower.id === id ? { ...flower, ...attrs } : flower
+        )
       );
     },
     []
@@ -143,18 +129,6 @@ export default function FlowerArrangerPage() {
         onSelectFlower={setSelectedId}
         onUpdateFlower={handleUpdateFlower}
       />
-
-      {/* Debug: Last touched flower info */}
-      {lastTouched && (() => {
-        const sheet = stageToSheet(lastTouched.x, lastTouched.y);
-        return (
-          <div className="absolute top-4 left-4 bg-black/80 text-white px-3 py-2 rounded font-mono text-xs">
-            <div>id: {lastTouched.id}</div>
-            <div>sx: {sheet.sx.toFixed(4)}</div>
-            <div>sy: {sheet.sy.toFixed(4)}</div>
-          </div>
-        );
-      })()}
 
       {/* Hidden reset button */}
       <button
