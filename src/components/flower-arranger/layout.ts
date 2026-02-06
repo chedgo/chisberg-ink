@@ -24,3 +24,7 @@ export const FONT_SIZE = 45;
 export const SHEET_X = PAD + POT_W - OVERLAP;
 export const TOTAL_W = PAD + POT_W + SHEET_W - OVERLAP + PAD;
 export const TOTAL_H = PAD + SHEET_H + PAD;
+
+// Artist signature text below the pot
+export const SIGNATURE_FONT_SIZE = 36;
+export const SIGNATURE_LETTER_SPACING = 5;

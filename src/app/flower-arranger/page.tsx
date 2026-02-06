@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { PlacedFlower } from '@/components/flower-arranger/ArrangerCanvas';
 import {
@@ -101,9 +101,71 @@ const INITIAL_FLOWERS: PlacedFlower[] = FLOWER_DEFS.map((f) => {
   return { id: f.id, src: f.src, x: pos.x, y: pos.y, rotation: 0 };
 });
 
+const STORAGE_KEY = 'flower-arranger-positions';
+const ARTIST_NAME_KEY = 'flower-arranger-artist-name';
+
+function loadFlowersFromStorage(): PlacedFlower[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored) as PlacedFlower[];
+    }
+  } catch {
+    // Invalid JSON, ignore
+  }
+  return null;
+}
+
+function loadArtistNameFromStorage(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem(ARTIST_NAME_KEY) || '';
+}
+
 export default function FlowerArrangerPage() {
   const [flowers, setFlowers] = useState<PlacedFlower[]>(INITIAL_FLOWERS);
+  const [artistName, setArtistName] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = loadFlowersFromStorage();
+    if (saved) {
+      setFlowers(saved);
+    }
+    setArtistName(loadArtistNameFromStorage());
+    setIsLoaded(true);
+  }, []);
+
+  // Save to localStorage whenever flowers change (after initial load)
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(flowers));
+    }
+  }, [flowers, isLoaded]);
+
+  // Save artist name to localStorage
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(ARTIST_NAME_KEY, artistName);
+    }
+  }, [artistName, isLoaded]);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const handleSelectFlower = useCallback((id: string | null) => {
+    setSelectedId(id);
+    if (id) {
+      // Bring the selected flower to the top of the stack
+      setFlowers((prev) => {
+        const index = prev.findIndex((f) => f.id === id);
+        if (index === -1 || index === prev.length - 1) return prev;
+        const flower = prev[index];
+        return [...prev.slice(0, index), ...prev.slice(index + 1), flower];
+      });
+    }
+  }, []);
+
   const handleUpdateFlower = useCallback(
     (id: string, attrs: { x?: number; y?: number; rotation?: number }) => {
       setFlowers((prev) =>
@@ -126,8 +188,10 @@ export default function FlowerArrangerPage() {
       <ArrangerCanvas
         flowers={flowers}
         selectedId={selectedId}
-        onSelectFlower={setSelectedId}
+        onSelectFlower={handleSelectFlower}
         onUpdateFlower={handleUpdateFlower}
+        artistName={artistName}
+        onArtistNameChange={setArtistName}
       />
 
       {/* Hidden reset button */}

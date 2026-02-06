@@ -21,6 +21,8 @@ import {
   TEXT_Y,
   TEXT_W,
   FONT_SIZE,
+  SIGNATURE_FONT_SIZE,
+  SIGNATURE_LETTER_SPACING,
 } from './layout';
 
 export interface PlacedFlower {
@@ -39,6 +41,8 @@ interface ArrangerCanvasProps {
     id: string,
     attrs: { x?: number; y?: number; rotation?: number }
   ) => void;
+  artistName: string;
+  onArtistNameChange: (name: string) => void;
 }
 
 function useImage(src: string): HTMLImageElement | null {
@@ -106,9 +110,14 @@ export function ArrangerCanvas({
   selectedId,
   onSelectFlower,
   onUpdateFlower,
+  artistName,
+  onArtistNameChange,
 }: ArrangerCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 600 });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingNameValue, setEditingNameValue] = useState(artistName);
+  const inputRef = useRef<HTMLInputElement>(null);
   const potImg = useImage('/flower-arranger/flowervase.jpg');
   const sheetImg = useImage(
     '/flower-arranger/new%20assets/flowers_stickersheet.jpg'
@@ -158,6 +167,33 @@ export function ArrangerCanvas({
   const textWidth = TEXT_W * s;
   const fontSize = FONT_SIZE * s;
 
+  // Signature text positioning - below the pot
+  const potCenterX = cardOffsetX + (PAD + POT_W / 2.2) * s;
+  const potCenterY = cardOffsetY + (PAD + SHEET_H / 1.4) * s;
+  const potHeight = POT_H * s;
+  const signatureY = potCenterY + potHeight / 2 -40 * s;
+  const signatureX = potCenterX -0;
+  const signatureFontSize = SIGNATURE_FONT_SIZE * s;
+
+  const handleSignatureClick = () => {
+    setEditingNameValue(artistName);
+    setIsEditingName(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleNameSubmit = () => {
+    onArtistNameChange(editingNameValue);
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleNameSubmit();
+    } else if (e.key === 'Escape') {
+      setIsEditingName(false);
+    }
+  };
+
   const instructionsText = `   DESIGN
   YOUR OWN
    FLOWERS
@@ -206,7 +242,7 @@ AS YOU LIKE.`;
             width={textWidth}
             text={instructionsText}
             fontSize={fontSize}
-            fontFamily="Junicode"
+            fontFamily="Junicode Condensed Italic"
             fontStyle="italic"
             fill="#000"
             lineHeight={1.2}
@@ -249,6 +285,41 @@ AS YOU LIKE.`;
               shadowEnabled
             />
           )}
+          {/* Artist signature - "BY " prefix always visible */}
+          <Text
+            x={signatureX}
+            y={signatureY}
+            text="BY "
+            fontSize={signatureFontSize}
+            fontFamily="Junicode Condensed Italic"
+            fontStyle="italic"
+            fill="#444"
+            letterSpacing={SIGNATURE_LETTER_SPACING * s}
+            offsetX={(POT_W * 0.9 * s) / 2}
+            rotation={POT_ROT}
+            onClick={handleSignatureClick}
+            onTap={handleSignatureClick}
+          />
+          {/* Artist name - shown when not editing */}
+          {!isEditingName && (
+            <Text
+              x={signatureX}
+              y={signatureY}
+              text={`BY ${artistName || 'YOUR NAME'}`.toUpperCase()}
+              fontSize={signatureFontSize}
+              fontFamily="Junicode Condensed Italic"
+              fontStyle="italic"
+              fill="#444"
+              letterSpacing={SIGNATURE_LETTER_SPACING * s}
+              align="left"
+              wrap="none"
+              width={POT_W * 0.9 * s}
+              offsetX={(POT_W * 0.9 * s) / 2}
+              rotation={POT_ROT}
+              onClick={handleSignatureClick}
+              onTap={handleSignatureClick}
+            />
+          )}
         </Layer>
         <Layer>
           {flowers.map((flower) => (
@@ -267,6 +338,32 @@ AS YOU LIKE.`;
           ))}
         </Layer>
       </Stage>
+      {/* Editable name input overlay - positioned after "BY " */}
+      {isEditingName && (
+        <input
+          ref={inputRef}
+          type="text"
+          value={editingNameValue}
+          onChange={(e) => setEditingNameValue(e.target.value)}
+          onBlur={handleNameSubmit}
+          onKeyDown={handleNameKeyDown}
+          placeholder="YOUR NAME"
+          className="absolute bg-transparent border-none outline-none"
+          style={{
+            left: signatureX - (POT_W * 0.9 * s) / 2 + signatureFontSize * 1.8,
+            top: signatureY,
+            width: POT_W * 0.9 * s - signatureFontSize * 1.8,
+            fontSize: signatureFontSize,
+            fontFamily: 'Junicode Condensed Italic',
+            fontStyle: 'italic',
+            color: '#444',
+            textTransform: 'uppercase',
+            letterSpacing: SIGNATURE_LETTER_SPACING * s,
+            transform: `rotate(${POT_ROT}deg)`,
+            transformOrigin: 'left top',
+          }}
+        />
+      )}
     </div>
   );
 }
