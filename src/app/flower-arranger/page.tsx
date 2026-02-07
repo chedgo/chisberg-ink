@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import type { PlacedFlower } from '@/components/flower-arranger/ArrangerCanvas';
+import { supabase } from '@/lib/supabase';
 import {
   SHEET_W,
   SHEET_H,
@@ -122,41 +125,66 @@ function loadArtistNameFromStorage(): string {
   return localStorage.getItem(ARTIST_NAME_KEY) || '';
 }
 
-export default function FlowerArrangerPage() {
+type ShareStatus = 'idle' | 'sharing' | 'shared' | 'error';
+
+function FlowerArrangerInner() {
+  const searchParams = useSearchParams();
+  const sharedId = searchParams.get('id');
+
   const [flowers, setFlowers] = useState<PlacedFlower[]>(INITIAL_FLOWERS);
   const [artistName, setArtistName] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isViewingShared, setIsViewingShared] = useState(false);
+  const [shareStatus, setShareStatus] = useState<ShareStatus>('idle');
 
-  // Load from localStorage on mount
+  // Load from Supabase if ?id= present, otherwise localStorage
   useEffect(() => {
-    const saved = loadFlowersFromStorage();
-    if (saved) {
-      setFlowers(saved);
+    if (sharedId) {
+      supabase
+        .from('arrangements')
+        .select('flowers, artist_name')
+        .eq('id', sharedId)
+        .single()
+        .then(({ data, error }) => {
+          if (data && !error) {
+            setFlowers(data.flowers as PlacedFlower[]);
+            setArtistName(data.artist_name);
+            setIsViewingShared(true);
+          } else {
+            // Fall back to localStorage if shared arrangement not found
+            const saved = loadFlowersFromStorage();
+            if (saved) setFlowers(saved);
+            setArtistName(loadArtistNameFromStorage());
+          }
+          setIsLoaded(true);
+        });
+    } else {
+      const saved = loadFlowersFromStorage();
+      if (saved) setFlowers(saved);
+      setArtistName(loadArtistNameFromStorage());
+      setIsLoaded(true);
     }
-    setArtistName(loadArtistNameFromStorage());
-    setIsLoaded(true);
-  }, []);
+  }, [sharedId]);
 
-  // Save to localStorage whenever flowers change (after initial load)
+  // Save to localStorage whenever flowers change (after initial load, only if not viewing shared)
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && !isViewingShared) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(flowers));
     }
-  }, [flowers, isLoaded]);
+  }, [flowers, isLoaded, isViewingShared]);
 
   // Save artist name to localStorage
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && !isViewingShared) {
       localStorage.setItem(ARTIST_NAME_KEY, artistName);
     }
-  }, [artistName, isLoaded]);
+  }, [artistName, isLoaded, isViewingShared]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleSelectFlower = useCallback((id: string | null) => {
     setSelectedId(id);
     if (id) {
-      // Bring the selected flower to the top of the stack
       setFlowers((prev) => {
         const index = prev.findIndex((f) => f.id === id);
         if (index === -1 || index === prev.length - 1) return prev;
@@ -182,6 +210,40 @@ export default function FlowerArrangerPage() {
     setSelectedId(null);
   }, []);
 
+  const handleShare = async () => {
+    setShareStatus('sharing');
+    try {
+      const { data, error } = await supabase
+        .from('arrangements')
+        .insert({ artist_name: artistName, flowers })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      const url = `${window.location.origin}/flower-arranger?id=${data.id}`;
+      await navigator.clipboard.writeText(url);
+      setShareStatus('shared');
+      setTimeout(() => setShareStatus('idle'), 2500);
+    } catch {
+      setShareStatus('error');
+      setTimeout(() => setShareStatus('idle'), 2500);
+    }
+  };
+
+  const shareButtonText = () => {
+    switch (shareStatus) {
+      case 'sharing':
+        return 'Sharing...';
+      case 'shared':
+        return 'Link\nCopied!';
+      case 'error':
+        return 'Error\nTry Again';
+      default:
+        return 'Share\nYour Work';
+    }
+  };
+
   return (
     <div className="h-screen overflow-hidden relative" style={{ backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}>
       {/* Full-viewport canvas */}
@@ -202,15 +264,31 @@ export default function FlowerArrangerPage() {
         Reset All
       </button>
 
+      {/* Gallery link */}
+      <Link
+        href="/gallery"
+        className="absolute bottom-6 left-28 junicode-italic-condensed text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+      >
+        Gallery
+      </Link>
+
       {/* Share Your Work button */}
       <button
-        className="absolute bottom-6 right-8 border-[1.5px] border-black px-6 py-3 junicode-italic-condensed uppercase text-[12px] tracking-[0.04em] leading-snug text-center bg-transparent hover:bg-black/5 transition-colors"
-        style={{ borderRadius: '50%' }}
+        onClick={handleShare}
+        disabled={shareStatus === 'sharing'}
+        className="absolute bottom-6 right-8 border-[1.5px] border-black px-6 py-3 junicode-italic-condensed uppercase text-[12px] tracking-[0.04em] leading-snug text-center bg-transparent hover:bg-black/5 transition-colors disabled:opacity-50"
+        style={{ borderRadius: '50%', whiteSpace: 'pre-line' }}
       >
-        Share
-        <br />
-        Your Work
+        {shareButtonText()}
       </button>
     </div>
+  );
+}
+
+export default function FlowerArrangerPage() {
+  return (
+    <Suspense>
+      <FlowerArrangerInner />
+    </Suspense>
   );
 }
