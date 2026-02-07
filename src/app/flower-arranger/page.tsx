@@ -124,7 +124,7 @@ function loadArtistNameFromStorage(): string {
   return localStorage.getItem(ARTIST_NAME_KEY) || '';
 }
 
-type ShareStatus = 'idle' | 'sharing' | 'shared' | 'error';
+type ShareStatus = 'idle' | 'sharing' | 'shared' | 'error' | 'needs-name';
 
 function FlowerArrangerInner() {
   const searchParams = useSearchParams();
@@ -206,6 +206,11 @@ function FlowerArrangerInner() {
   }, []);
 
   const handleShare = async () => {
+    if (!artistName.trim()) {
+      setShareStatus('needs-name');
+      setTimeout(() => setShareStatus('idle'), 2500);
+      return;
+    }
     setShareStatus('sharing');
     try {
       const res = await fetch('/api/arrangements', {
@@ -232,6 +237,8 @@ function FlowerArrangerInner() {
         return 'Sharing...';
       case 'shared':
         return 'Link\nCopied!';
+      case 'needs-name':
+        return 'Introduce\nYourself First';
       case 'error':
         return 'Error\nTry Again';
       default:
@@ -249,6 +256,7 @@ function FlowerArrangerInner() {
         onUpdateFlower={handleUpdateFlower}
         artistName={artistName}
         onArtistNameChange={setArtistName}
+        highlightName={shareStatus === 'needs-name'}
       />
 
       {/* Hidden reset button */}

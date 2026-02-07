@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Image, Text } from 'react-konva';
+import Konva from 'konva';
 import { DraggableFlower } from './DraggableFlower';
 import {
   POT_W,
@@ -43,6 +44,7 @@ interface ArrangerCanvasProps {
   ) => void;
   artistName: string;
   onArtistNameChange: (name: string) => void;
+  highlightName?: boolean;
 }
 
 function useImage(src: string): HTMLImageElement | null {
@@ -112,17 +114,69 @@ export function ArrangerCanvas({
   onUpdateFlower,
   artistName,
   onArtistNameChange,
+  highlightName,
 }: ArrangerCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 600 });
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingNameValue, setEditingNameValue] = useState(artistName);
   const inputRef = useRef<HTMLInputElement>(null);
+  const signatureRef = useRef<Konva.Text>(null);
   const potImg = useImage('/flower-arranger/flowervase.jpg');
   const sheetImg = useImage(
     '/flower-arranger/new%20assets/flowers_stickersheet.jpg'
   );
   const logoImg = useImage('/flower-arranger/flowerslogo.png');
+
+  // Animate signature text when highlighted — scale from center
+  useEffect(() => {
+    const node = signatureRef.current;
+    if (!highlightName || !node) return;
+    setIsEditingName(false);
+
+    // Shift offset to text center so scaling anchors from center
+    const textWidth = node.getTextWidth();
+    const textHeight = node.height();
+    const origOffsetX = node.offsetX();
+    const origOffsetY = node.offsetY();
+    const origX = node.x();
+    const origY = node.y();
+    const newOffsetX = textWidth / 2;
+    const newOffsetY = textHeight / 2;
+    // Account for rotation when adjusting position
+    const angle = (node.rotation() * Math.PI) / 180;
+    const dx = newOffsetX - origOffsetX;
+    const dy = newOffsetY - origOffsetY;
+    node.offsetX(newOffsetX);
+    node.offsetY(newOffsetY);
+    node.x(origX + dx * Math.cos(angle) - dy * Math.sin(angle));
+    node.y(origY + dx * Math.sin(angle) + dy * Math.cos(angle));
+
+    const tween = new Konva.Tween({
+      node,
+      duration: 0.6,
+      scaleX: 1.15,
+      scaleY: 1.15,
+      easing: Konva.Easings.EaseInOut,
+      onFinish: () => {
+        new Konva.Tween({
+          node,
+          duration: 0.6,
+          scaleX: 1,
+          scaleY: 1,
+          easing: Konva.Easings.EaseInOut,
+          onFinish: () => {
+            // Restore original offset
+            node.offsetX(origOffsetX);
+            node.offsetY(origOffsetY);
+            node.x(origX);
+            node.y(origY);
+          },
+        }).play();
+      },
+    });
+    tween.play();
+  }, [highlightName]);
 
   useEffect(() => {
     const update = () => {
@@ -285,31 +339,34 @@ AS YOU LIKE.`;
               shadowEnabled
             />
           )}
-          {/* Artist signature - "BY " prefix always visible */}
-          <Text
-            x={signatureX}
-            y={signatureY}
-            text="BY "
-            fontSize={signatureFontSize}
-            fontFamily="Junicode Condensed Italic"
-            fontStyle="italic"
-            fill="#444"
-            letterSpacing={SIGNATURE_LETTER_SPACING * s}
-            offsetX={(POT_W * 0.9 * s) / 2}
-            rotation={POT_ROT}
-            onClick={handleSignatureClick}
-            onTap={handleSignatureClick}
-          />
+          {/* Artist signature - "BY " prefix visible when not highlighting */}
+          {!highlightName && (
+            <Text
+              x={signatureX}
+              y={signatureY}
+              text="BY "
+              fontSize={signatureFontSize}
+              fontFamily="Junicode Condensed Italic"
+              fontStyle="italic"
+              fill="#444"
+              letterSpacing={SIGNATURE_LETTER_SPACING * s}
+              offsetX={(POT_W * 0.9 * s) / 2}
+              rotation={POT_ROT}
+              onClick={handleSignatureClick}
+              onTap={handleSignatureClick}
+            />
+          )}
           {/* Artist name - shown when not editing */}
           {!isEditingName && (
             <Text
+              ref={signatureRef}
               x={signatureX}
               y={signatureY}
               text={`BY ${artistName || 'YOUR NAME'}`.toUpperCase()}
               fontSize={signatureFontSize}
               fontFamily="Junicode Condensed Italic"
               fontStyle="italic"
-              fill="#444"
+              fill={highlightName ? '#c44' : '#444'}
               letterSpacing={SIGNATURE_LETTER_SPACING * s}
               align="left"
               wrap="none"
