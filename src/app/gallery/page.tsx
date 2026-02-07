@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { supabase } from '@/lib/supabase';
 
 const GalleryCard = dynamic(
   () => import('@/components/gallery/GalleryCard').then((mod) => mod.GalleryCard),
@@ -28,12 +27,10 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from('arrangements')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setArrangements(data as Arrangement[]);
+    fetch('/api/arrangements')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setArrangements(data as Arrangement[]);
         setLoading(false);
       });
   }, []);

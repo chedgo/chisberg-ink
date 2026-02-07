@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import type { PlacedFlower } from '@/components/flower-arranger/ArrangerCanvas';
-import { supabase } from '@/lib/supabase';
 import {
   SHEET_W,
   SHEET_H,
@@ -137,21 +136,17 @@ function FlowerArrangerInner() {
   const [isViewingShared, setIsViewingShared] = useState(false);
   const [shareStatus, setShareStatus] = useState<ShareStatus>('idle');
 
-  // Load from Supabase if ?id= present, otherwise localStorage
+  // Load from API if ?id= present, otherwise localStorage
   useEffect(() => {
     if (sharedId) {
-      supabase
-        .from('arrangements')
-        .select('flowers, artist_name')
-        .eq('id', sharedId)
-        .single()
-        .then(({ data, error }) => {
-          if (data && !error) {
+      fetch(`/api/arrangements?id=${sharedId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && !data.error) {
             setFlowers(data.flowers as PlacedFlower[]);
             setArtistName(data.artist_name);
             setIsViewingShared(true);
           } else {
-            // Fall back to localStorage if shared arrangement not found
             const saved = loadFlowersFromStorage();
             if (saved) setFlowers(saved);
             setArtistName(loadArtistNameFromStorage());
@@ -213,15 +208,15 @@ function FlowerArrangerInner() {
   const handleShare = async () => {
     setShareStatus('sharing');
     try {
-      const { data, error } = await supabase
-        .from('arrangements')
-        .insert({ artist_name: artistName, flowers })
-        .select('id')
-        .single();
+      const res = await fetch('/api/arrangements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artist_name: artistName, flowers }),
+      });
+      if (!res.ok) throw new Error('Failed to share');
+      const { id } = await res.json();
 
-      if (error) throw error;
-
-      const url = `${window.location.origin}/flower-arranger?id=${data.id}`;
+      const url = `${window.location.origin}/flower-arranger?id=${id}`;
       await navigator.clipboard.writeText(url);
       setShareStatus('shared');
       setTimeout(() => setShareStatus('idle'), 2500);
