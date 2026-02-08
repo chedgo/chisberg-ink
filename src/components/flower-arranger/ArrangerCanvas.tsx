@@ -570,10 +570,10 @@ export function ArrangerCanvas({
   // Signature positioning
   const sigScale = isMobile ? sPot : s;
   const sigPotCenterX = isMobile
-    ? mobilePotX + mobilePotW / 2.2
+    ? mobilePotX + mobilePotW / 2
     : cardOffsetX + (PAD + POT_W / 2.2) * s;
   const sigPotCenterY = isMobile
-    ? mobilePotY + mobilePotH / 1.4
+    ? mobilePotY + mobilePotH / 2
     : cardOffsetY + (PAD + SHEET_H / 1.4) * s;
   const sigPotHeight = isMobile ? mobilePotH : POT_H * s;
   const signatureY = sigPotCenterY + sigPotHeight / 2 - 40 * sigScale;
