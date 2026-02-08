@@ -93,7 +93,7 @@ export function GalleryCard({ id, artistName, flowers }: GalleryCardProps) {
     <Link href={`/flower-arranger?id=${id}`} className="block group">
       <div
         ref={containerRef}
-        className="bg-white/60 border border-black/10 overflow-hidden group-hover:border-black/30 transition-colors"
+        className="overflow-hidden"
         style={{ width: THUMB_W, height: THUMB_H }}
       >
         <Stage width={THUMB_W} height={THUMB_H} listening={false}>
@@ -107,7 +107,6 @@ export function GalleryCard({ id, artistName, flowers }: GalleryCardProps) {
                 height={POT_H * s}
                 offsetX={(POT_W * s) / 2}
                 offsetY={(POT_H * s) / 2}
-                rotation={POT_ROT}
                 listening={false}
               />
             )}
