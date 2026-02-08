@@ -265,33 +265,56 @@ function FlowerArrangerInner() {
         artistName={artistName}
         onArtistNameChange={setArtistName}
         highlightName={shareStatus === 'needs-name'}
+        readOnly={isViewingShared}
       />
 
-      {/* Hidden reset button */}
-      <button
-        onClick={handleClearAll}
-        className="absolute bottom-3 left-3 sm:bottom-6 sm:left-8 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors text-left"
-      >
-        Reset All
-      </button>
+      {isViewingShared ? (
+        <>
+          {/* Make Your Own link */}
+          <Link
+            href="/flower-arranger"
+            className="absolute bottom-3 left-3 sm:bottom-6 sm:left-8 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+          >
+            Make Your Own
+          </Link>
 
-      {/* Gallery link */}
-      <Link
-        href="/gallery"
-        className="absolute bottom-3 left-20 sm:bottom-6 sm:left-28 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
-      >
-        Gallery
-      </Link>
+          {/* Gallery link */}
+          <Link
+            href="/gallery"
+            className="absolute bottom-3 left-28 sm:bottom-6 sm:left-36 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+          >
+            Gallery
+          </Link>
+        </>
+      ) : (
+        <>
+          {/* Hidden reset button */}
+          <button
+            onClick={handleClearAll}
+            className="absolute bottom-3 left-3 sm:bottom-6 sm:left-8 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors text-left"
+          >
+            Reset All
+          </button>
 
-      {/* Share Your Work button */}
-      <button
-        onClick={handleShare}
-        disabled={shareStatus === 'sharing'}
-        className="absolute bottom-2 right-2 sm:bottom-6 sm:right-8 border-[1.5px] border-black px-3 py-2 sm:px-6 sm:py-3 junicode-italic-condensed uppercase text-[10px] sm:text-[12px] tracking-[0.04em] leading-snug text-center bg-transparent hover:bg-black/5 transition-colors disabled:opacity-50"
-        style={{ borderRadius: '50%', whiteSpace: 'pre-line' }}
-      >
-        {shareButtonText()}
-      </button>
+          {/* Gallery link */}
+          <Link
+            href="/gallery"
+            className="absolute bottom-3 left-20 sm:bottom-6 sm:left-28 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+          >
+            Gallery
+          </Link>
+
+          {/* Share Your Work button */}
+          <button
+            onClick={handleShare}
+            disabled={shareStatus === 'sharing'}
+            className="absolute bottom-2 right-2 sm:bottom-6 sm:right-8 border-[1.5px] border-black px-3 py-2 sm:px-6 sm:py-3 junicode-italic-condensed uppercase text-[10px] sm:text-[12px] tracking-[0.04em] leading-snug text-center bg-transparent hover:bg-black/5 transition-colors disabled:opacity-50"
+            style={{ borderRadius: '50%', whiteSpace: 'pre-line' }}
+          >
+            {shareButtonText()}
+          </button>
+        </>
+      )}
     </div>
   );
 }

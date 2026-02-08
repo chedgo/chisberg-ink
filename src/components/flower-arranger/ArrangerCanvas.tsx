@@ -53,6 +53,7 @@ interface ArrangerCanvasProps {
   artistName: string;
   onArtistNameChange: (name: string) => void;
   highlightName?: boolean;
+  readOnly?: boolean;
 }
 
 function useImage(src: string): HTMLImageElement | null {
@@ -256,6 +257,84 @@ function MobileSheetFlower({
   );
 }
 
+// Static flower for read-only mode (no drag, no selection)
+function StaticFlower({
+  flower,
+  imageScale,
+  offsetX,
+  offsetY,
+  areaW,
+  areaH,
+}: {
+  flower: PlacedFlower;
+  imageScale: number;
+  offsetX: number;
+  offsetY: number;
+  areaW: number;
+  areaH: number;
+}) {
+  const image = useImage(flower.src);
+  if (!image) return null;
+
+  const w = image.width * imageScale;
+  const h = image.height * imageScale;
+
+  return (
+    <Image
+      image={image}
+      x={offsetX + flower.x * areaW}
+      y={offsetY + flower.y * areaH}
+      width={w}
+      height={h}
+      offsetX={w / 2}
+      offsetY={h / 2}
+      rotation={flower.rotation}
+      listening={false}
+    />
+  );
+}
+
+// Static flower for read-only mobile (pot-local coords)
+function StaticMobilePotFlower({
+  flower,
+  imageScale,
+  areaX,
+  areaY,
+  areaW,
+  areaH,
+}: {
+  flower: PlacedFlower;
+  imageScale: number;
+  areaX: number;
+  areaY: number;
+  areaW: number;
+  areaH: number;
+}) {
+  const image = useImage(flower.src);
+  if (!image) return null;
+
+  const { px, py } = layoutFracToPotLocal(flower.x, flower.y);
+  const pixelX = areaX + px * areaW;
+  const pixelY = areaY + py * areaH;
+
+  const w = image.width * imageScale;
+  const h = image.height * imageScale;
+
+  return (
+    <Image
+      image={image}
+      x={pixelX}
+      y={pixelY}
+      width={w}
+      height={h}
+      offsetX={w / 2}
+      offsetY={h / 2}
+      rotation={flower.rotation}
+      listening={false}
+    />
+  );
+}
+
 // Pot center in pot-local fraction coords (derived from desktop rendering offsets)
 const POT_LOCAL_CENTER_PX = (POT_W / 2.2) / POT_W;
 const POT_LOCAL_CENTER_PY = (SHEET_H / 1.4) / SHEET_H;
@@ -269,6 +348,7 @@ export function ArrangerCanvas({
   artistName,
   onArtistNameChange,
   highlightName,
+  readOnly,
 }: ArrangerCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 600 });
@@ -664,6 +744,150 @@ AS YOU LIKE.`;
   const sheetFlowers = flowers.filter(
     (f) => isFlowerOnSheetMobile(f.x) && f.id !== draggingFromSheet
   );
+
+  // Flowers that are on the pot (for read-only desktop view)
+  const readOnlyFlowers = flowers.filter((f) => !isFlowerOnSheet(f.x));
+
+  // ──── Desktop read-only layout ────
+  // Scale based on pot dimensions to center the pot in viewport
+  const roPadding = 40;
+  const roScaleX = (dims.w - roPadding * 2) / POT_W;
+  const roScaleY = (dims.h - roPadding * 2) / POT_H;
+  const roS = Math.min(roScaleX, roScaleY);
+  const roPotW = POT_W * roS;
+  const roPotH = POT_H * roS;
+  // Center pot in viewport
+  const roPotCenterX = dims.w / 2;
+  const roPotCenterY = dims.h / 2;
+  // For flower positioning, we need to map layout-fraction coords to the pot-only view
+  // The pot occupies PAD to PAD+POT_W horizontally and PAD to PAD+SHEET_H vertically in layout coords
+  const roLayoutW = TOTAL_W * roS;
+  const roLayoutH = TOTAL_H * roS;
+  // Offset so that the pot center (PAD + POT_W/2.2) maps to screen center
+  const roCardOffsetX = roPotCenterX - (PAD + POT_W / 2.2) * roS;
+  const roCardOffsetY = roPotCenterY - (PAD + SHEET_H / 1.4) * roS;
+
+  // Read-only signature positioning
+  const roSigScale = roS;
+  const roSignatureY = roPotCenterY + roPotH / 2 - 40 * roSigScale;
+  const roSignatureX = roPotCenterX;
+  const roSignatureFontSize = SIGNATURE_FONT_SIZE * roSigScale;
+
+  // ──── Mobile read-only rendering ────
+  if (readOnly && isMobile) {
+    return (
+      <div ref={containerRef} className="absolute inset-0">
+        <Stage width={dims.w} height={dims.h}>
+          <Layer>
+            {potImg && (
+              <Image
+                image={potImg}
+                x={mobilePotX + mobilePotW / 2}
+                y={mobilePotY + mobilePotH / 2}
+                width={mobilePotW}
+                height={mobilePotH}
+                offsetX={mobilePotW / 2}
+                offsetY={mobilePotH / 2}
+                rotation={POT_ROT}
+                shadowColor="rgba(0,0,0,0.3)"
+                shadowBlur={20 * sPot}
+                shadowOffsetX={6 * sPot}
+                shadowOffsetY={6 * sPot}
+                shadowEnabled
+              />
+            )}
+            <Text
+              x={signatureX}
+              y={signatureY}
+              text={`BY ${artistName || 'ANONYMOUS'}`.toUpperCase()}
+              fontSize={signatureFontSize}
+              fontFamily="Junicode Condensed Italic"
+              fontStyle="italic"
+              fill="#444"
+              letterSpacing={SIGNATURE_LETTER_SPACING * sigScale}
+              align="left"
+              wrap="none"
+              width={POT_W * 0.9 * sigScale}
+              offsetX={(POT_W * 0.9 * sigScale) / 2}
+              rotation={POT_ROT}
+              listening={false}
+            />
+          </Layer>
+          <Layer>
+            {potFlowers.map((flower) => (
+              <StaticMobilePotFlower
+                key={flower.id}
+                flower={flower}
+                imageScale={sPot}
+                areaX={potAreaX}
+                areaY={potAreaY}
+                areaW={potAreaW}
+                areaH={potAreaH}
+              />
+            ))}
+          </Layer>
+        </Stage>
+      </div>
+    );
+  }
+
+  // ──── Desktop read-only rendering ────
+  if (readOnly) {
+    return (
+      <div ref={containerRef} className="absolute inset-0">
+        <Stage width={dims.w} height={dims.h}>
+          <Layer>
+            {potImg && (
+              <Image
+                image={potImg}
+                x={roPotCenterX}
+                y={roPotCenterY}
+                width={roPotW}
+                height={roPotH}
+                offsetX={roPotW / 2}
+                offsetY={roPotH / 2}
+                rotation={POT_ROT}
+                shadowColor="rgba(0,0,0,0.3)"
+                shadowBlur={20 * roS}
+                shadowOffsetX={6 * roS}
+                shadowOffsetY={6 * roS}
+                shadowEnabled
+              />
+            )}
+            <Text
+              x={roSignatureX}
+              y={roSignatureY}
+              text={`BY ${artistName || 'ANONYMOUS'}`.toUpperCase()}
+              fontSize={roSignatureFontSize}
+              fontFamily="Junicode Condensed Italic"
+              fontStyle="italic"
+              fill="#444"
+              letterSpacing={SIGNATURE_LETTER_SPACING * roSigScale}
+              align="left"
+              wrap="none"
+              width={POT_W * 0.9 * roSigScale}
+              offsetX={(POT_W * 0.9 * roSigScale) / 2}
+              rotation={POT_ROT}
+              listening={false}
+            />
+          </Layer>
+          <Layer>
+            {readOnlyFlowers.map((flower) => (
+              <StaticFlower
+                key={flower.id}
+                flower={flower}
+                imageScale={roS}
+                offsetX={roCardOffsetX}
+                offsetY={roCardOffsetY}
+                areaW={roLayoutW}
+                areaH={roLayoutH}
+              />
+            ))}
+          </Layer>
+        </Stage>
+      </div>
+    );
+  }
 
   // ──── Mobile rendering ────
   if (isMobile) {

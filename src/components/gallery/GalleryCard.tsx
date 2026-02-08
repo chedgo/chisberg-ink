@@ -11,6 +11,7 @@ import {
   POT_ROT,
   TOTAL_W,
   TOTAL_H,
+  isFlowerOnSheet,
 } from '@/components/flower-arranger/layout';
 
 interface PlacedFlower {
@@ -73,12 +74,20 @@ export function GalleryCard({ id, artistName, flowers }: GalleryCardProps) {
   const potImg = useImage('/flower-arranger/flowervase.jpg');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scale to fit the thumbnail
-  const s = Math.min(THUMB_W / TOTAL_W, THUMB_H / TOTAL_H);
+  // Scale to fit pot in thumbnail (with small padding)
+  const thumbPad = 10;
+  const s = Math.min((THUMB_W - thumbPad * 2) / POT_W, (THUMB_H - thumbPad * 2) / POT_H);
+
+  // Full layout dimensions at this scale (needed for flower coord mapping)
   const renderedW = TOTAL_W * s;
   const renderedH = TOTAL_H * s;
-  const offsetX = (THUMB_W - renderedW) / 2;
-  const offsetY = (THUMB_H - renderedH) / 2;
+
+  // Center the pot in the thumbnail
+  const potCenterX = THUMB_W / 2;
+  const potCenterY = THUMB_H / 2;
+  // Offset so pot center in layout coords maps to thumbnail center
+  const offsetX = potCenterX - (PAD + POT_W / 2.2) * s;
+  const offsetY = potCenterY - (PAD + SHEET_H / 1.4) * s;
 
   return (
     <Link href={`/flower-arranger?id=${id}`} className="block group">
@@ -92,8 +101,8 @@ export function GalleryCard({ id, artistName, flowers }: GalleryCardProps) {
             {potImg && (
               <KonvaImage
                 image={potImg}
-                x={offsetX + (PAD + POT_W / 2.2) * s}
-                y={offsetY + (PAD + SHEET_H / 1.4) * s}
+                x={potCenterX}
+                y={potCenterY}
                 width={POT_W * s}
                 height={POT_H * s}
                 offsetX={(POT_W * s) / 2}
@@ -104,7 +113,7 @@ export function GalleryCard({ id, artistName, flowers }: GalleryCardProps) {
             )}
           </Layer>
           <Layer>
-            {flowers.map((flower) => (
+            {flowers.filter((f) => !isFlowerOnSheet(f.x)).map((flower) => (
               <FlowerThumbnail
                 key={flower.id}
                 flower={flower}
