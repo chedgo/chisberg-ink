@@ -54,6 +54,8 @@ interface ArrangerCanvasProps {
   onArtistNameChange: (name: string) => void;
   highlightName?: boolean;
   readOnly?: boolean;
+  mobileGuidanceHidden?: boolean;
+  onMobileInteraction?: () => void;
 }
 
 function useImage(src: string): HTMLImageElement | null {
@@ -349,6 +351,8 @@ export function ArrangerCanvas({
   onArtistNameChange,
   highlightName,
   readOnly,
+  mobileGuidanceHidden,
+  onMobileInteraction,
 }: ArrangerCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 600 });
@@ -460,7 +464,8 @@ export function ArrangerCanvas({
 
   const handleToggleDrawer = useCallback(() => {
     setDrawerOpen((prev) => !prev);
-  }, []);
+    onMobileInteraction?.();
+  }, [onMobileInteraction]);
 
   // ──── Desktop layout ────
   const cardAreaLeft = dims.w * 0.18;
@@ -674,6 +679,11 @@ export function ArrangerCanvas({
 
   const handleStageClick = () => {
     onSelectFlower(null);
+  };
+
+  const handleMobileStageClick = () => {
+    onSelectFlower(null);
+    onMobileInteraction?.();
   };
 
   // Logo and text positioning — desktop only
@@ -907,7 +917,14 @@ AS YOU LIKE.`;
         </div>
 
         {/* Instructions — three columns */}
-        <div className="flex-shrink-0 px-3 pb-2">
+        <div
+          className="flex-shrink-0 px-3 overflow-hidden"
+          style={{
+            maxHeight: mobileGuidanceHidden ? 0 : 200,
+            paddingBottom: mobileGuidanceHidden ? 0 : 8,
+            transition: 'max-height 1.2s ease-in-out, padding-bottom 1.2s ease-in-out',
+          }}
+        >
           <div className="flex gap-2 justify-center">
             {instructionsText.split('\n\n•\n\n').map((para, i) => (
               <p
@@ -933,8 +950,8 @@ AS YOU LIKE.`;
           <Stage
             width={dims.w}
             height={dims.h}
-            onClick={handleStageClick}
-            onTap={handleStageClick}
+            onClick={handleMobileStageClick}
+            onTap={handleMobileStageClick}
           >
             {/* Pot layer */}
             <Layer>
@@ -1007,7 +1024,7 @@ AS YOU LIKE.`;
                   areaW={potAreaW}
                   areaH={potAreaH}
                   potRect={dropZone}
-                  onSelect={() => onSelectFlower(flower.id)}
+                  onSelect={() => { onSelectFlower(flower.id); onMobileInteraction?.(); }}
                   onChange={(attrs) => onUpdateFlower(flower.id, attrs)}
                   onDropOutside={() => {
                     const initial = initialPositions?.[flower.id];

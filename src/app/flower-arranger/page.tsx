@@ -138,6 +138,7 @@ function FlowerArrangerInner() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isViewingShared, setIsViewingShared] = useState(false);
   const [shareStatus, setShareStatus] = useState<ShareStatus>('idle');
+  const [mobileGuidanceHidden, setMobileGuidanceHidden] = useState(false);
 
   // Load from API if ?id= present, otherwise localStorage
   useEffect(() => {
@@ -207,6 +208,7 @@ function FlowerArrangerInner() {
     setFlowers(INITIAL_FLOWERS.map((f) => ({ ...f })));
     setSelectedId(null);
     setIsViewingShared(false);
+    setMobileGuidanceHidden(false);
     if (sharedId) {
       window.history.replaceState({}, '', '/flower-arranger');
     }
@@ -266,6 +268,8 @@ function FlowerArrangerInner() {
         onArtistNameChange={setArtistName}
         highlightName={shareStatus === 'needs-name'}
         readOnly={isViewingShared}
+        mobileGuidanceHidden={mobileGuidanceHidden}
+        onMobileInteraction={() => setMobileGuidanceHidden(true)}
       />
 
       {isViewingShared ? (
