@@ -28,6 +28,7 @@ import {
   DRAWER_WIDTH_FRAC,
   DRAWER_HANDLE_W,
   isFlowerOnSheet,
+  isFlowerOnSheetMobile,
   layoutFracToPotLocal,
   potLocalToLayoutFrac,
 } from './layout';
@@ -48,6 +49,7 @@ interface ArrangerCanvasProps {
     id: string,
     attrs: { x?: number; y?: number; rotation?: number }
   ) => void;
+  initialPositions?: Record<string, { x: number; y: number }>;
   artistName: string;
   onArtistNameChange: (name: string) => void;
   highlightName?: boolean;
@@ -124,8 +126,10 @@ function MobilePotFlower({
   areaY,
   areaW,
   areaH,
+  potRect,
   onSelect,
   onChange,
+  onDropOutside,
 }: {
   flower: PlacedFlower;
   isSelected: boolean;
@@ -134,8 +138,10 @@ function MobilePotFlower({
   areaY: number;
   areaW: number;
   areaH: number;
+  potRect: { x: number; y: number; w: number; h: number };
   onSelect: () => void;
   onChange: (attrs: { x?: number; y?: number; rotation?: number }) => void;
+  onDropOutside: () => void;
 }) {
   const image = useImage(flower.src);
   if (!image) return null;
@@ -155,6 +161,16 @@ function MobilePotFlower({
       imageScale={imageScale}
       onSelect={onSelect}
       onChange={(attrs) => {
+        // Check if dropped outside pot bounds
+        if (attrs.x !== undefined && attrs.y !== undefined) {
+          if (
+            attrs.x < potRect.x || attrs.x > potRect.x + potRect.w ||
+            attrs.y < potRect.y || attrs.y > potRect.y + potRect.h
+          ) {
+            onDropOutside();
+            return;
+          }
+        }
         const converted: { x?: number; y?: number; rotation?: number } = {};
         if (attrs.x !== undefined && attrs.y !== undefined) {
           const newPx = (attrs.x - areaX) / areaW;
@@ -249,6 +265,7 @@ export function ArrangerCanvas({
   selectedId,
   onSelectFlower,
   onUpdateFlower,
+  initialPositions,
   artistName,
   onArtistNameChange,
   highlightName,
@@ -407,6 +424,16 @@ export function ArrangerCanvas({
   const potAreaRef = useRef({ x: potAreaX, y: potAreaY, w: potAreaW, h: potAreaH });
   potAreaRef.current = { x: potAreaX, y: potAreaY, w: potAreaW, h: potAreaH };
 
+  // Single drop zone rect used by both transition drops and pot flower drags
+  const dropPadX = mobilePotW * 0.05;
+  const dropPadY = mobilePotH * 0.05;
+  const dropZone = { x: mobilePotX - dropPadX, y: mobilePotY - dropPadY, w: mobilePotW + dropPadX * 2, h: mobilePotH + dropPadY * 2 };
+  const potRectRef = useRef(dropZone);
+  potRectRef.current = dropZone;
+
+  const initialPositionsRef = useRef(initialPositions);
+  initialPositionsRef.current = initialPositions;
+
   // Ref to access transitionFlower in DOM event handlers
   const transitionFlowerRef = useRef(transitionFlower);
   transitionFlowerRef.current = transitionFlower;
@@ -510,6 +537,7 @@ export function ArrangerCanvas({
       if (!tf) return;
 
       const area = potAreaRef.current;
+      const pot = potRectRef.current;
 
       // If the node mounted and the user dragged, use node position; otherwise center on pot
       let fx: number, fy: number;
@@ -521,6 +549,20 @@ export function ArrangerCanvas({
         const wasDragged = Math.abs(dx) > 5 || Math.abs(dy) > 5;
 
         if (wasDragged) {
+          // Check if dropped outside pot bounds — send back to sheet
+          const outsidePot =
+            dropX < pot.x || dropX > pot.x + pot.w ||
+            dropY < pot.y || dropY > pot.y + pot.h;
+          if (outsidePot) {
+            const initial = initialPositionsRef.current?.[tf.id];
+            if (initial) {
+              onUpdateFlowerRef.current(tf.id, { x: initial.x, y: initial.y, rotation: 0 });
+            }
+            onSelectFlowerRef.current(null);
+            setTransitionFlower(null);
+            setDraggingFromSheet(null);
+            return;
+          }
           const newPx = (dropX - area.x) / area.w;
           const newPy = (dropY - area.y) / area.h;
           ({ fx, fy } = potLocalToLayoutFrac(newPx, newPy));
@@ -617,10 +659,10 @@ USE AS FEW
 OR AS MANY
 AS YOU LIKE.`;
 
-  // Classify flowers for mobile
-  const potFlowers = flowers.filter((f) => !isFlowerOnSheet(f.x));
+  // Classify flowers for mobile — use mobile-specific check that respects the full pot width
+  const potFlowers = flowers.filter((f) => !isFlowerOnSheetMobile(f.x));
   const sheetFlowers = flowers.filter(
-    (f) => isFlowerOnSheet(f.x) && f.id !== draggingFromSheet
+    (f) => isFlowerOnSheetMobile(f.x) && f.id !== draggingFromSheet
   );
 
   // ──── Mobile rendering ────
@@ -703,8 +745,16 @@ AS YOU LIKE.`;
                 areaY={potAreaY}
                 areaW={potAreaW}
                 areaH={potAreaH}
+                potRect={dropZone}
                 onSelect={() => onSelectFlower(flower.id)}
                 onChange={(attrs) => onUpdateFlower(flower.id, attrs)}
+                onDropOutside={() => {
+                  const initial = initialPositions?.[flower.id];
+                  if (initial) {
+                    onUpdateFlower(flower.id, { x: initial.x, y: initial.y, rotation: 0 });
+                    onSelectFlower(null);
+                  }
+                }}
               />
             ))}
           </Layer>

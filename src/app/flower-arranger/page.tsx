@@ -103,6 +103,9 @@ const INITIAL_FLOWERS: PlacedFlower[] = FLOWER_DEFS.map((f) => {
   return { id: f.id, src: f.src, x: pos.x, y: pos.y, rotation: 0 };
 });
 
+const INITIAL_POSITIONS: Record<string, { x: number; y: number }> =
+  Object.fromEntries(INITIAL_FLOWERS.map((f) => [f.id, { x: f.x, y: f.y }]));
+
 const STORAGE_KEY = 'flower-arranger-positions';
 const ARTIST_NAME_KEY = 'flower-arranger-artist-name';
 
@@ -203,7 +206,11 @@ function FlowerArrangerInner() {
   const handleClearAll = useCallback(() => {
     setFlowers(INITIAL_FLOWERS.map((f) => ({ ...f })));
     setSelectedId(null);
-  }, []);
+    setIsViewingShared(false);
+    if (sharedId) {
+      window.history.replaceState({}, '', '/flower-arranger');
+    }
+  }, [sharedId]);
 
   const handleShare = async () => {
     if (!artistName.trim()) {
@@ -254,6 +261,7 @@ function FlowerArrangerInner() {
         selectedId={selectedId}
         onSelectFlower={handleSelectFlower}
         onUpdateFlower={handleUpdateFlower}
+        initialPositions={INITIAL_POSITIONS}
         artistName={artistName}
         onArtistNameChange={setArtistName}
         highlightName={shareStatus === 'needs-name'}

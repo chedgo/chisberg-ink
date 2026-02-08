@@ -37,9 +37,18 @@ export const DRAWER_HANDLE_W = 44; // tap target width in CSS px
 // Fraction of TOTAL_W where the sticker sheet begins
 export const SHEET_LEFT_FRAC = SHEET_X / TOTAL_W; // ~0.35
 
+// Right edge of the pot in layout-fraction coords
+export const POT_RIGHT_FRAC = (PAD + POT_W) / TOTAL_W; // ~0.39
+
 // Check if a flower (by its layout-fraction x) is still on the sticker sheet
+// Desktop version uses overlap zone; mobile should use isFlowerOnSheetMobile
 export function isFlowerOnSheet(flowerX: number): boolean {
   return flowerX >= SHEET_LEFT_FRAC - 0.05;
+}
+
+// Mobile: flower is on sheet only if it's past the pot's actual right edge
+export function isFlowerOnSheetMobile(flowerX: number): boolean {
+  return flowerX > POT_RIGHT_FRAC;
 }
 
 // Convert layout-fraction coords to pot-local fraction (0-1 within pot area)
