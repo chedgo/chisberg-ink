@@ -355,7 +355,10 @@ export function ArrangerCanvas({
   onMobileInteraction,
 }: ArrangerCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dims, setDims] = useState({ w: 800, h: 600 });
+  const [dims, setDims] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 800,
+    h: typeof window !== 'undefined' ? window.innerHeight : 600,
+  }));
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingNameValue, setEditingNameValue] = useState(artistName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -486,15 +489,16 @@ export function ArrangerCanvas({
 
   // ──── Mobile layout ────
   const mobilePadding = 20;
+  const mobilePotTopPad = mobilePadding + 20;
   const mobilePotScaleX = (dims.w - mobilePadding * 2) / POT_W;
-  const mobileCanvasH = mobilePadding * 2 + 20 + POT_H * mobilePotScaleX;
-  const mobilePotScaleY = (mobileCanvasH - mobilePadding * 2) / POT_H;
+  const mobileBottomPad = mobilePadding + 10; // extra breathing room above bottom bar
+  const mobilePotScaleY = (dims.h - mobilePotTopPad - mobileBottomPad) / POT_H;
   const sPot = Math.min(mobilePotScaleX, mobilePotScaleY);
 
   const mobilePotW = POT_W * sPot;
   const mobilePotH = POT_H * sPot;
   const mobilePotX = (dims.w - mobilePotW) / 2;
-  const mobilePotY = mobilePadding + 20;
+  const mobilePotY = mobilePotTopPad;
 
   // Drawer
   const drawerW = dims.w * DRAWER_WIDTH_FRAC;
@@ -790,7 +794,7 @@ AS YOU LIKE.`;
   // ──── Mobile read-only rendering ────
   if (readOnly && isMobile) {
     return (
-      <div ref={containerRef} className="absolute inset-0">
+      <div ref={containerRef} className="flex-1 min-h-0">
         <Stage width={dims.w} height={dims.h}>
           <Layer>
             {potImg && (
@@ -906,7 +910,7 @@ AS YOU LIKE.`;
   // ──── Mobile rendering ────
   if (isMobile) {
     return (
-      <div className="absolute inset-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {/* Logo — shrinks but stays visible */}
         <div
           className="shrink-0 flex justify-center"
@@ -958,13 +962,10 @@ AS YOU LIKE.`;
           </div>
         </div>
 
-        {/* Canvas — fixed height based on pot */}
+        {/* Canvas — fills remaining viewport space */}
         <div
           ref={containerRef}
-          className="relative w-full"
-          style={{
-            height: mobileCanvasH,
-          }}
+          className="relative w-full flex-1 min-h-0 overflow-hidden"
         >
           <Stage
             width={dims.w}

@@ -256,7 +256,7 @@ function FlowerArrangerInner() {
   };
 
   return (
-    <div className="h-screen overflow-hidden relative" style={{ backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}>
+    <div className="h-screen overflow-hidden relative flex flex-col" style={{ backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}>
       {/* Full-viewport canvas */}
       <ArrangerCanvas
         flowers={flowers}
@@ -272,52 +272,88 @@ function FlowerArrangerInner() {
         onMobileInteraction={() => setMobileGuidanceHidden(true)}
       />
 
+      {/* Mobile bottom bar */}
       {isViewingShared ? (
-        <>
-          {/* Make Your Own link */}
+        <div className="shrink-0 flex items-center gap-4 px-4 py-3 md:hidden">
           <Link
             href="/flower-arranger"
-            className="absolute bottom-3 left-3 sm:bottom-6 sm:left-8 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+            className="junicode-italic-condensed text-[10px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
           >
             Make Your Own
           </Link>
-
-          {/* Gallery link */}
           <Link
             href="/gallery"
-            className="absolute bottom-3 left-28 sm:bottom-6 sm:left-36 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+            className="junicode-italic-condensed text-[10px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
           >
             Gallery
           </Link>
-        </>
+        </div>
       ) : (
-        <>
-          {/* Hidden reset button */}
-          <button
-            onClick={handleClearAll}
-            className="absolute bottom-3 left-3 sm:bottom-6 sm:left-8 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors text-left"
-          >
-            Reset All
-          </button>
-
-          {/* Gallery link */}
-          <Link
-            href="/gallery"
-            className="absolute bottom-3 left-20 sm:bottom-6 sm:left-28 junicode-italic-condensed text-[10px] sm:text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
-          >
-            Gallery
-          </Link>
-
-          {/* Share Your Work button */}
+        <div className="shrink-0 flex items-center justify-between px-4 py-3 md:hidden">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleClearAll}
+              className="junicode-italic-condensed text-[10px] uppercase tracking-wider text-black/40 hover:text-black transition-colors text-left"
+            >
+              Reset All
+            </button>
+            <Link
+              href="/gallery"
+              className="junicode-italic-condensed text-[10px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+            >
+              Gallery
+            </Link>
+          </div>
           <button
             onClick={handleShare}
             disabled={shareStatus === 'sharing'}
-            className="absolute bottom-2 right-2 sm:bottom-6 sm:right-8 border-[1.5px] border-black px-3 py-2 sm:px-6 sm:py-3 junicode-italic-condensed uppercase text-[10px] sm:text-[12px] tracking-[0.04em] leading-snug text-center hover:bg-black/5 transition-colors disabled:opacity-50"
+            className="border-[1.5px] border-black px-3 py-1.5 junicode-italic-condensed uppercase text-[10px] tracking-[0.04em] leading-snug text-center hover:bg-black/5 transition-colors disabled:opacity-50"
             style={{ borderRadius: '50%', whiteSpace: 'pre-line', backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}
           >
             {shareButtonText()}
           </button>
-        </>
+        </div>
+      )}
+
+      {/* Desktop buttons (absolute positioned) */}
+      {isViewingShared ? (
+        <div className="hidden md:block">
+          <Link
+            href="/flower-arranger"
+            className="absolute bottom-6 left-8 junicode-italic-condensed text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+          >
+            Make Your Own
+          </Link>
+          <Link
+            href="/gallery"
+            className="absolute bottom-6 left-36 junicode-italic-condensed text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+          >
+            Gallery
+          </Link>
+        </div>
+      ) : (
+        <div className="hidden md:block">
+          <button
+            onClick={handleClearAll}
+            className="absolute bottom-6 left-8 junicode-italic-condensed text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors text-left"
+          >
+            Reset All
+          </button>
+          <Link
+            href="/gallery"
+            className="absolute bottom-6 left-28 junicode-italic-condensed text-[11px] uppercase tracking-wider text-black/40 hover:text-black transition-colors"
+          >
+            Gallery
+          </Link>
+          <button
+            onClick={handleShare}
+            disabled={shareStatus === 'sharing'}
+            className="absolute bottom-6 right-8 border-[1.5px] border-black px-6 py-3 junicode-italic-condensed uppercase text-[12px] tracking-[0.04em] leading-snug text-center hover:bg-black/5 transition-colors disabled:opacity-50"
+            style={{ borderRadius: '50%', whiteSpace: 'pre-line', backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}
+          >
+            {shareButtonText()}
+          </button>
+        </div>
       )}
     </div>
   );
