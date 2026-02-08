@@ -904,7 +904,7 @@ AS YOU LIKE.`;
     return (
       <div className="absolute inset-0 flex flex-col">
         {/* Logo — always at top */}
-        <div className="flex-shrink-0 flex justify-center pt-3 pb-3">
+        <div className="shrink-0 flex justify-center pt-8 pb-5">
           <img
             src="/flower-arranger/flowerslogo.png"
             alt="Flowers logo"
@@ -925,11 +925,11 @@ AS YOU LIKE.`;
             transition: 'max-height 1.2s ease-in-out, padding-bottom 1.2s ease-in-out',
           }}
         >
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-6 justify-center items-center">
             {instructionsText.split('\n\n•\n\n').map((para, i) => (
               <p
                 key={i}
-                className="text-center flex-1"
+                className="text-center"
                 style={{
                   fontFamily: 'Junicode Condensed Italic',
                   fontStyle: 'italic',
