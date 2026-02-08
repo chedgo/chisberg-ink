@@ -256,7 +256,7 @@ function FlowerArrangerInner() {
   };
 
   return (
-    <div className="h-screen overflow-hidden relative flex flex-col" style={{ backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}>
+    <div className="h-dvh overflow-hidden relative flex flex-col" style={{ backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}>
       {/* Full-viewport canvas */}
       <ArrangerCanvas
         flowers={flowers}
