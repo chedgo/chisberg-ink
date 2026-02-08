@@ -487,7 +487,7 @@ export function ArrangerCanvas({
   // ──── Mobile layout ────
   const mobilePadding = 20;
   const mobilePotScaleX = (dims.w - mobilePadding * 2) / POT_W;
-  const mobileCanvasH = mobilePadding * 2 + POT_H * mobilePotScaleX + 40;
+  const mobileCanvasH = mobilePadding * 2 + POT_H * mobilePotScaleX;
   const mobilePotScaleY = (mobileCanvasH - mobilePadding * 2) / POT_H;
   const sPot = Math.min(mobilePotScaleX, mobilePotScaleY);
 
