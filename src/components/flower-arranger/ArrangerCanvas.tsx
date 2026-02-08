@@ -430,15 +430,18 @@ export function ArrangerCanvas({
   }, [highlightName]);
 
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
     const update = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       setDims({ w: rect.width, h: rect.height });
     };
 
     update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // Animate drawer open/close
@@ -484,7 +487,8 @@ export function ArrangerCanvas({
   // ──── Mobile layout ────
   const mobilePadding = 20;
   const mobilePotScaleX = (dims.w - mobilePadding * 2) / POT_W;
-  const mobilePotScaleY = (dims.h - mobilePadding * 2) / POT_H;
+  const mobileCanvasH = mobilePadding * 2 + POT_H * mobilePotScaleX + 40;
+  const mobilePotScaleY = (mobileCanvasH - mobilePadding * 2) / POT_H;
   const sPot = Math.min(mobilePotScaleX, mobilePotScaleY);
 
   const mobilePotW = POT_W * sPot;
@@ -902,7 +906,7 @@ AS YOU LIKE.`;
   // ──── Mobile rendering ────
   if (isMobile) {
     return (
-      <div className="absolute inset-0 flex flex-col">
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
         {/* Logo + Instructions — shrink away together */}
         <div
           className="shrink-0 overflow-hidden"
@@ -944,13 +948,12 @@ AS YOU LIKE.`;
           </div>
         </div>
 
-        {/* Canvas — fills remaining space */}
+        {/* Canvas — fixed height based on pot */}
         <div
           ref={containerRef}
-          className="flex-1 relative min-h-0"
+          className="relative w-full"
           style={{
-            paddingTop: mobileGuidanceHidden ? 16 : 0,
-            transition: 'padding-top 1.2s ease-in-out',
+            height: mobileCanvasH,
           }}
         >
           <Stage
@@ -1163,14 +1166,6 @@ AS YOU LIKE.`;
             />
           )}
         </div>
-        {/* Bottom spacer — collapses with guidance */}
-        <div
-          className="shrink-0"
-          style={{
-            height: mobileGuidanceHidden ? 0 : 24,
-            transition: 'height 1.2s ease-in-out',
-          }}
-        />
       </div>
     );
   }
