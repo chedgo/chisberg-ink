@@ -903,28 +903,26 @@ AS YOU LIKE.`;
   if (isMobile) {
     return (
       <div className="absolute inset-0 flex flex-col">
-        {/* Logo — always at top */}
-        <div className="shrink-0 flex justify-center pt-8 pb-5">
-          <img
-            src="/flower-arranger/flowerslogo.png"
-            alt="Flowers logo"
-            style={{
-              width: '55%',
-              maxWidth: 260,
-              transform: `rotate(${LOGO_ROT}deg)`,
-            }}
-          />
-        </div>
-
-        {/* Instructions — three columns */}
+        {/* Logo + Instructions — shrink away together */}
         <div
-          className="flex-shrink-0 px-3 overflow-hidden"
+          className="shrink-0 overflow-hidden"
           style={{
-            maxHeight: mobileGuidanceHidden ? 0 : 200,
-            paddingBottom: mobileGuidanceHidden ? 0 : 8,
-            transition: 'max-height 1.2s ease-in-out, padding-bottom 1.2s ease-in-out',
+            maxHeight: mobileGuidanceHidden ? 0 : 500,
+            transition: 'max-height 1.2s ease-in-out',
           }}
         >
+          <div className="flex justify-center pt-8 pb-5">
+            <img
+              src="/flower-arranger/flowerslogo.png"
+              alt="Flowers logo"
+              style={{
+                width: '55%',
+                maxWidth: 260,
+                transform: `rotate(${LOGO_ROT}deg)`,
+              }}
+            />
+          </div>
+          <div className="px-3 pb-2">
           <div className="flex gap-6 justify-center items-center">
             {instructionsText.split('\n\n•\n\n').map((para, i) => (
               <p
@@ -943,10 +941,18 @@ AS YOU LIKE.`;
               </p>
             ))}
           </div>
+          </div>
         </div>
 
         {/* Canvas — fills remaining space */}
-        <div ref={containerRef} className="flex-1 relative min-h-0">
+        <div
+          ref={containerRef}
+          className="flex-1 relative min-h-0"
+          style={{
+            paddingTop: mobileGuidanceHidden ? 16 : 0,
+            transition: 'padding-top 1.2s ease-in-out',
+          }}
+        >
           <Stage
             width={dims.w}
             height={dims.h}
@@ -1157,6 +1163,8 @@ AS YOU LIKE.`;
             />
           )}
         </div>
+        {/* Bottom spacer */}
+        <div className="shrink-0 h-6" />
       </div>
     );
   }
