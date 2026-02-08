@@ -479,13 +479,13 @@ export function ArrangerCanvas({
   // ──── Mobile layout ────
   const mobilePadding = 20;
   const mobilePotScaleX = (dims.w - mobilePadding * 2) / POT_W;
-  const mobilePotScaleY = (dims.h * 0.85 - mobilePadding * 2) / POT_H;
+  const mobilePotScaleY = (dims.h - mobilePadding * 2) / POT_H;
   const sPot = Math.min(mobilePotScaleX, mobilePotScaleY);
 
   const mobilePotW = POT_W * sPot;
   const mobilePotH = POT_H * sPot;
   const mobilePotX = (dims.w - mobilePotW) / 2;
-  const mobilePotY = (dims.h * 0.85 - mobilePotH) / 2 + mobilePadding;
+  const mobilePotY = mobilePadding;
 
   // Drawer
   const drawerW = dims.w * DRAWER_WIDTH_FRAC;
@@ -892,216 +892,254 @@ AS YOU LIKE.`;
   // ──── Mobile rendering ────
   if (isMobile) {
     return (
-      <div ref={containerRef} className="absolute inset-0">
-        <Stage
-          width={dims.w}
-          height={dims.h}
-          onClick={handleStageClick}
-          onTap={handleStageClick}
-        >
-          {/* Pot layer */}
-          <Layer>
-            {potImg && (
-              <Image
-                image={potImg}
-                x={mobilePotX + mobilePotW / 2}
-                y={mobilePotY + mobilePotH / 2}
-                width={mobilePotW}
-                height={mobilePotH}
-                offsetX={mobilePotW / 2}
-                offsetY={mobilePotH / 2}
-                rotation={POT_ROT}
-                shadowColor="rgba(0,0,0,0.3)"
-                shadowBlur={20 * sPot}
-                shadowOffsetX={6 * sPot}
-                shadowOffsetY={6 * sPot}
-                shadowEnabled
-              />
-            )}
-            {/* Signature */}
-            {!highlightName && (
-              <Text
-                x={signatureX}
-                y={signatureY}
-                text="BY "
-                fontSize={signatureFontSize}
-                fontFamily="Junicode Condensed Italic"
-                fontStyle="italic"
-                fill="#444"
-                letterSpacing={SIGNATURE_LETTER_SPACING * sigScale}
-                offsetX={(POT_W * 0.9 * sigScale) / 2}
-                rotation={POT_ROT}
-                onClick={handleSignatureClick}
-                onTap={handleSignatureClick}
-              />
-            )}
-            {!isEditingName && (
-              <Text
-                ref={signatureRef}
-                x={signatureX}
-                y={signatureY}
-                text={`BY ${artistName || 'YOUR NAME'}`.toUpperCase()}
-                fontSize={signatureFontSize}
-                fontFamily="Junicode Condensed Italic"
-                fontStyle="italic"
-                fill={highlightName ? '#c44' : '#444'}
-                letterSpacing={SIGNATURE_LETTER_SPACING * sigScale}
-                align="left"
-                wrap="none"
-                width={POT_W * 0.9 * sigScale}
-                offsetX={(POT_W * 0.9 * sigScale) / 2}
-                rotation={POT_ROT}
-                onClick={handleSignatureClick}
-                onTap={handleSignatureClick}
-              />
-            )}
-          </Layer>
+      <div className="absolute inset-0 flex flex-col">
+        {/* Logo — always at top */}
+        <div className="flex-shrink-0 flex justify-center pt-3 pb-3">
+          <img
+            src="/flower-arranger/flowerslogo.png"
+            alt="Flowers logo"
+            style={{
+              width: '55%',
+              maxWidth: 260,
+              transform: `rotate(${LOGO_ROT}deg)`,
+            }}
+          />
+        </div>
 
-          {/* Pot flowers layer */}
-          <Layer>
-            {potFlowers.map((flower) => (
-              <MobilePotFlower
-                key={flower.id}
-                flower={flower}
-                isSelected={flower.id === selectedId}
-                imageScale={sPot}
-                areaX={potAreaX}
-                areaY={potAreaY}
-                areaW={potAreaW}
-                areaH={potAreaH}
-                potRect={dropZone}
-                onSelect={() => onSelectFlower(flower.id)}
-                onChange={(attrs) => onUpdateFlower(flower.id, attrs)}
-                onDropOutside={() => {
-                  const initial = initialPositions?.[flower.id];
-                  if (initial) {
-                    onUpdateFlower(flower.id, { x: initial.x, y: initial.y, rotation: 0 });
-                    onSelectFlower(null);
-                  }
+        {/* Instructions — three columns */}
+        <div className="flex-shrink-0 px-3 pb-2">
+          <div className="flex gap-2 justify-center">
+            {instructionsText.split('\n\n•\n\n').map((para, i) => (
+              <p
+                key={i}
+                className="text-center flex-1"
+                style={{
+                  fontFamily: 'Junicode Condensed Italic',
+                  fontStyle: 'italic',
+                  fontSize: 11,
+                  lineHeight: 1.25,
+                  letterSpacing: 0.3,
+                  whiteSpace: 'pre-line',
                 }}
-              />
+              >
+                {para.trim()}
+              </p>
             ))}
-          </Layer>
+          </div>
+        </div>
 
-          {/* Drawer layer */}
-          <Layer>
-            <Group
-              ref={drawerGroupRef}
-              x={dims.w}
-              y={0}
-            >
-              <Rect
-                x={0}
-                y={0}
-                width={drawerW}
-                height={dims.h}
-                fill={tileImg ? undefined : '#f5f3ee'}
-                fillPatternImage={tileImg ?? undefined}
-                fillPatternRepeat="repeat"
-                shadowColor="rgba(0,0,0,0.3)"
-                shadowBlur={20}
-                shadowOffsetX={-4}
-                shadowEnabled
-              />
-              {sheetImg && (
+        {/* Canvas — fills remaining space */}
+        <div ref={containerRef} className="flex-1 relative min-h-0">
+          <Stage
+            width={dims.w}
+            height={dims.h}
+            onClick={handleStageClick}
+            onTap={handleStageClick}
+          >
+            {/* Pot layer */}
+            <Layer>
+              {potImg && (
                 <Image
-                  image={sheetImg}
-                  x={drawerPad}
-                  y={(dims.h - sheetPixelH) / 2}
-                  width={sheetPixelW}
-                  height={sheetPixelH}
-                  shadowColor="rgba(0,0,0,0.15)"
-                  shadowBlur={8}
-                  shadowOffsetX={2}
-                  shadowOffsetY={2}
+                  image={potImg}
+                  x={mobilePotX + mobilePotW / 2}
+                  y={mobilePotY + mobilePotH / 2}
+                  width={mobilePotW}
+                  height={mobilePotH}
+                  offsetX={mobilePotW / 2}
+                  offsetY={mobilePotH / 2}
+                  rotation={POT_ROT}
+                  shadowColor="rgba(0,0,0,0.3)"
+                  shadowBlur={20 * sPot}
+                  shadowOffsetX={6 * sPot}
+                  shadowOffsetY={6 * sPot}
                   shadowEnabled
                 />
               )}
-              {sheetFlowers.map((flower) => (
-                <MobileSheetFlower
+              {/* Signature */}
+              {!highlightName && (
+                <Text
+                  x={signatureX}
+                  y={signatureY}
+                  text="BY "
+                  fontSize={signatureFontSize}
+                  fontFamily="Junicode Condensed Italic"
+                  fontStyle="italic"
+                  fill="#444"
+                  letterSpacing={SIGNATURE_LETTER_SPACING * sigScale}
+                  offsetX={(POT_W * 0.9 * sigScale) / 2}
+                  rotation={POT_ROT}
+                  onClick={handleSignatureClick}
+                  onTap={handleSignatureClick}
+                />
+              )}
+              {!isEditingName && (
+                <Text
+                  ref={signatureRef}
+                  x={signatureX}
+                  y={signatureY}
+                  text={`BY ${artistName || 'YOUR NAME'}`.toUpperCase()}
+                  fontSize={signatureFontSize}
+                  fontFamily="Junicode Condensed Italic"
+                  fontStyle="italic"
+                  fill={highlightName ? '#c44' : '#444'}
+                  letterSpacing={SIGNATURE_LETTER_SPACING * sigScale}
+                  align="left"
+                  wrap="none"
+                  width={POT_W * 0.9 * sigScale}
+                  offsetX={(POT_W * 0.9 * sigScale) / 2}
+                  rotation={POT_ROT}
+                  onClick={handleSignatureClick}
+                  onTap={handleSignatureClick}
+                />
+              )}
+            </Layer>
+
+            {/* Pot flowers layer */}
+            <Layer>
+              {potFlowers.map((flower) => (
+                <MobilePotFlower
                   key={flower.id}
                   flower={flower}
-                  imageScale={sSheet}
-                  sheetOffsetX={drawerPad}
-                  sheetOffsetY={(dims.h - sheetPixelH) / 2}
-                  sheetPixelW={sheetPixelW}
-                  sheetPixelH={sheetPixelH}
-                  onPickUp={handlePickFromSheet}
+                  isSelected={flower.id === selectedId}
+                  imageScale={sPot}
+                  areaX={potAreaX}
+                  areaY={potAreaY}
+                  areaW={potAreaW}
+                  areaH={potAreaH}
+                  potRect={dropZone}
+                  onSelect={() => onSelectFlower(flower.id)}
+                  onChange={(attrs) => onUpdateFlower(flower.id, attrs)}
+                  onDropOutside={() => {
+                    const initial = initialPositions?.[flower.id];
+                    if (initial) {
+                      onUpdateFlower(flower.id, { x: initial.x, y: initial.y, rotation: 0 });
+                      onSelectFlower(null);
+                    }
+                  }}
                 />
               ))}
-            </Group>
-          </Layer>
+            </Layer>
 
-          {/* Transition flower layer — on top of everything */}
-          <Layer>
-            {transitionFlower && (
-              <Image
-                ref={transitionNodeRef}
-                image={transitionFlower.image}
-                x={transitionStartPos.current.x}
-                y={transitionStartPos.current.y}
-                width={transitionFlower.image.width * sSheet}
-                height={transitionFlower.image.height * sSheet}
-                offsetX={(transitionFlower.image.width * sSheet) / 2}
-                offsetY={(transitionFlower.image.height * sSheet) / 2}
-                listening={false}
-              />
-            )}
-          </Layer>
-        </Stage>
+            {/* Drawer layer */}
+            <Layer>
+              <Group
+                ref={drawerGroupRef}
+                x={dims.w}
+                y={0}
+              >
+                <Rect
+                  x={0}
+                  y={0}
+                  width={drawerW}
+                  height={dims.h}
+                  fill={tileImg ? undefined : '#f5f3ee'}
+                  fillPatternImage={tileImg ?? undefined}
+                  fillPatternRepeat="repeat"
+                  shadowColor="rgba(0,0,0,0.3)"
+                  shadowBlur={20}
+                  shadowOffsetX={-4}
+                  shadowEnabled
+                />
+                {sheetImg && (
+                  <Image
+                    image={sheetImg}
+                    x={drawerPad}
+                    y={(dims.h - sheetPixelH) / 2}
+                    width={sheetPixelW}
+                    height={sheetPixelH}
+                    shadowColor="rgba(0,0,0,0.15)"
+                    shadowBlur={8}
+                    shadowOffsetX={2}
+                    shadowOffsetY={2}
+                    shadowEnabled
+                  />
+                )}
+                {sheetFlowers.map((flower) => (
+                  <MobileSheetFlower
+                    key={flower.id}
+                    flower={flower}
+                    imageScale={sSheet}
+                    sheetOffsetX={drawerPad}
+                    sheetOffsetY={(dims.h - sheetPixelH) / 2}
+                    sheetPixelW={sheetPixelW}
+                    sheetPixelH={sheetPixelH}
+                    onPickUp={handlePickFromSheet}
+                  />
+                ))}
+              </Group>
+            </Layer>
 
-        {/* Drawer handle */}
-        <button
-          onClick={handleToggleDrawer}
-          className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center bg-black/80 text-white"
-          style={{
-            right: drawerOpen ? drawerW - 2 : 0,
-            width: DRAWER_HANDLE_W,
-            height: 80,
-            borderRadius: '8px 0 0 8px',
-            transition: 'right 0.3s ease-in-out',
-            zIndex: 10,
-            writingMode: 'vertical-rl',
-            textOrientation: 'mixed',
-            fontSize: 11,
-            letterSpacing: 2,
-            fontFamily: 'Junicode Condensed Italic',
-            fontStyle: 'italic',
-            textTransform: 'uppercase',
-          }}
-        >
-          {drawerOpen ? '✕' : 'Flowers'}
-        </button>
+            {/* Transition flower layer — on top of everything */}
+            <Layer>
+              {transitionFlower && (
+                <Image
+                  ref={transitionNodeRef}
+                  image={transitionFlower.image}
+                  x={transitionStartPos.current.x}
+                  y={transitionStartPos.current.y}
+                  width={transitionFlower.image.width * sSheet}
+                  height={transitionFlower.image.height * sSheet}
+                  offsetX={(transitionFlower.image.width * sSheet) / 2}
+                  offsetY={(transitionFlower.image.height * sSheet) / 2}
+                  listening={false}
+                />
+              )}
+            </Layer>
+          </Stage>
 
-        {/* Editable name input overlay */}
-        {isEditingName && (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editingNameValue}
-            onChange={(e) => setEditingNameValue(e.target.value)}
-            onBlur={handleNameSubmit}
-            onKeyDown={handleNameKeyDown}
-            placeholder="YOUR NAME"
-            className="absolute bg-transparent border-none outline-none"
+          {/* Drawer handle */}
+          <button
+            onClick={handleToggleDrawer}
+            className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center bg-black/80 text-white"
             style={{
-              left:
-                signatureX -
-                (POT_W * 0.9 * sigScale) / 2 +
-                signatureFontSize * 1.8,
-              top: signatureY,
-              width: POT_W * 0.9 * sigScale - signatureFontSize * 1.8,
-              fontSize: signatureFontSize,
+              right: drawerOpen ? drawerW - 2 : 0,
+              width: DRAWER_HANDLE_W,
+              height: 80,
+              borderRadius: '8px 0 0 8px',
+              transition: 'right 0.3s ease-in-out',
+              zIndex: 10,
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+              fontSize: 11,
+              letterSpacing: 2,
               fontFamily: 'Junicode Condensed Italic',
               fontStyle: 'italic',
-              color: '#444',
               textTransform: 'uppercase',
-              letterSpacing: SIGNATURE_LETTER_SPACING * sigScale,
-              transform: `rotate(${POT_ROT}deg)`,
-              transformOrigin: 'left top',
             }}
-          />
-        )}
+          >
+            {drawerOpen ? '✕' : 'Flowers'}
+          </button>
+
+          {/* Editable name input overlay */}
+          {isEditingName && (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editingNameValue}
+              onChange={(e) => setEditingNameValue(e.target.value)}
+              onBlur={handleNameSubmit}
+              onKeyDown={handleNameKeyDown}
+              placeholder="YOUR NAME"
+              className="absolute bg-transparent border-none outline-none"
+              style={{
+                left:
+                  signatureX -
+                  (POT_W * 0.9 * sigScale) / 2 +
+                  signatureFontSize * 1.8,
+                top: signatureY,
+                width: POT_W * 0.9 * sigScale - signatureFontSize * 1.8,
+                fontSize: signatureFontSize,
+                fontFamily: 'Junicode Condensed Italic',
+                fontStyle: 'italic',
+                color: '#444',
+                textTransform: 'uppercase',
+                letterSpacing: SIGNATURE_LETTER_SPACING * sigScale,
+                transform: `rotate(${POT_ROT}deg)`,
+                transformOrigin: 'left top',
+              }}
+            />
+          )}
+        </div>
       </div>
     );
   }
