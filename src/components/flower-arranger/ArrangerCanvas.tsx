@@ -550,10 +550,8 @@ export function ArrangerCanvas({
     };
   }, [transitionFlower]);
 
-  const handleStageClick = (e: { target: { getStage: () => unknown } }) => {
-    if (e.target === e.target.getStage()) {
-      onSelectFlower(null);
-    }
+  const handleStageClick = () => {
+    onSelectFlower(null);
   };
 
   // Logo and text positioning — desktop only

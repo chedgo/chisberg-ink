@@ -98,7 +98,8 @@ export function DraggableFlower({
     }
   }, []);
 
-  const handleDragStart = useCallback(() => {
+  const handleDragStart = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+    e.cancelBubble = true;
     onSelect();
     if (imageRef.current) {
       imageRef.current.getStage()!.container().style.cursor = 'grabbing';
@@ -106,6 +107,7 @@ export function DraggableFlower({
   }, [onSelect]);
 
   const handleDragEnd = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+    e.cancelBubble = true;
     if (imageRef.current) {
       imageRef.current.getStage()!.container().style.cursor = 'grab';
     }
@@ -131,8 +133,8 @@ export function DraggableFlower({
         draggable
         offsetX={displayWidth / 2}
         offsetY={displayHeight / 2}
-        onClick={onSelect}
-        onTap={onSelect}
+        onClick={(e) => { e.cancelBubble = true; onSelect(); }}
+        onTap={(e) => { e.cancelBubble = true; onSelect(); }}
         onDragStart={handleDragStart}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -163,6 +165,8 @@ export function DraggableFlower({
           anchorSize={12}
           anchorCornerRadius={6}
           borderStrokeWidth={1}
+          onClick={(e) => { e.cancelBubble = true; }}
+          onTap={(e) => { e.cancelBubble = true; }}
         />
       )}
     </>
