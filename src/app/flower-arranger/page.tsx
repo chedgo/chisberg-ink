@@ -308,8 +308,8 @@ function FlowerArrangerInner() {
           <button
             onClick={handleShare}
             disabled={shareStatus === 'sharing'}
-            className="absolute bottom-2 right-2 sm:bottom-6 sm:right-8 border-[1.5px] border-black px-3 py-2 sm:px-6 sm:py-3 junicode-italic-condensed uppercase text-[10px] sm:text-[12px] tracking-[0.04em] leading-snug text-center bg-transparent hover:bg-black/5 transition-colors disabled:opacity-50"
-            style={{ borderRadius: '50%', whiteSpace: 'pre-line' }}
+            className="absolute bottom-2 right-2 sm:bottom-6 sm:right-8 border-[1.5px] border-black px-3 py-2 sm:px-6 sm:py-3 junicode-italic-condensed uppercase text-[10px] sm:text-[12px] tracking-[0.04em] leading-snug text-center hover:bg-black/5 transition-colors disabled:opacity-50"
+            style={{ borderRadius: '50%', whiteSpace: 'pre-line', backgroundImage: "url('/flower-arranger/tile_lightlime.jpg')", backgroundRepeat: 'repeat' }}
           >
             {shareButtonText()}
           </button>
