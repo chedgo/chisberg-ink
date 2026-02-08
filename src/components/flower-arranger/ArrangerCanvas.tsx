@@ -488,10 +488,10 @@ export function ArrangerCanvas({
   const cardOffsetY = (dims.h - renderedH) / 2;
 
   // ──── Mobile layout ────
-  const mobilePadding = 20;
-  const mobilePotTopPad = mobilePadding + 20;
+  const mobilePadding = 10;
+  const mobilePotTopPad = mobilePadding;
   const mobilePotScaleX = (dims.w - mobilePadding * 2) / POT_W;
-  const mobileBottomPad = mobilePadding + 10; // extra breathing room above bottom bar
+  const mobileBottomPad = mobilePadding;
   const mobilePotScaleY = (dims.h - mobilePotTopPad - mobileBottomPad) / POT_H;
   const sPot = Math.min(mobilePotScaleX, mobilePotScaleY);
 
@@ -911,12 +911,12 @@ AS YOU LIKE.`;
   if (isMobile) {
     return (
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden" style={{ touchAction: 'none' }}>
-        {/* Logo — shrinks but stays visible */}
+        {/* Logo + instructions — shrinks on interaction */}
         <div
-          className="shrink-0 flex justify-center"
+          className="shrink-0 overflow-hidden flex flex-col items-center"
           style={{
-            paddingTop: mobileGuidanceHidden ? 16 : 32,
-            paddingBottom: mobileGuidanceHidden ? 0 : 20,
+            paddingTop: mobileGuidanceHidden ? 20 : 24,
+            paddingBottom: mobileGuidanceHidden ? 4 : 10,
             transition: 'padding-top 1.2s ease-in-out, padding-bottom 1.2s ease-in-out',
           }}
         >
@@ -924,41 +924,39 @@ AS YOU LIKE.`;
             src="/flower-arranger/flowerslogo.png"
             alt="Flowers logo"
             style={{
-              width: mobileGuidanceHidden ? '30%' : '55%',
-              maxWidth: mobileGuidanceHidden ? 140 : 260,
+              width: mobileGuidanceHidden ? '25%' : '45%',
+              maxWidth: mobileGuidanceHidden ? 120 : 220,
               transform: `rotate(${LOGO_ROT}deg)`,
               transition: 'width 1.2s ease-in-out, max-width 1.2s ease-in-out',
             }}
           />
-        </div>
-
-        {/* Instructions — shrink away */}
-        <div
-          className="shrink-0 overflow-hidden"
-          style={{
-            maxHeight: mobileGuidanceHidden ? 0 : 500,
-            transition: 'max-height 1.2s ease-in-out',
-          }}
-        >
-          <div className="px-3 pb-2">
-          <div className="flex gap-6 justify-center items-center">
-            {instructionsText.split('\n\n•\n\n').map((para, i) => (
-              <p
-                key={i}
-                className="text-center"
-                style={{
-                  fontFamily: 'Junicode Condensed Italic',
-                  fontStyle: 'italic',
-                  fontSize: 11,
-                  lineHeight: 1.25,
-                  letterSpacing: 0.3,
-                  whiteSpace: 'pre-line',
-                }}
-              >
-                {para.trim()}
-              </p>
-            ))}
-          </div>
+          <div
+            className="overflow-hidden w-full"
+            style={{
+              maxHeight: mobileGuidanceHidden ? 0 : 500,
+              transition: 'max-height 1.2s ease-in-out',
+            }}
+          >
+            <div className="px-3 pt-2 pb-1">
+              <div className="flex gap-6 justify-center items-center">
+                {instructionsText.split('\n\n•\n\n').map((para, i) => (
+                  <p
+                    key={i}
+                    className="text-center"
+                    style={{
+                      fontFamily: 'Junicode Condensed Italic',
+                      fontStyle: 'italic',
+                      fontSize: 11,
+                      lineHeight: 1.25,
+                      letterSpacing: 0.3,
+                      whiteSpace: 'pre-line',
+                    }}
+                  >
+                    {para.trim()}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
