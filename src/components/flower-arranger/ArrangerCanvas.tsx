@@ -1163,8 +1163,14 @@ AS YOU LIKE.`;
             />
           )}
         </div>
-        {/* Bottom spacer */}
-        <div className="shrink-0 h-6" />
+        {/* Bottom spacer — collapses with guidance */}
+        <div
+          className="shrink-0"
+          style={{
+            height: mobileGuidanceHidden ? 0 : 24,
+            transition: 'height 1.2s ease-in-out',
+          }}
+        />
       </div>
     );
   }
