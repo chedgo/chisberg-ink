@@ -487,14 +487,14 @@ export function ArrangerCanvas({
   // ──── Mobile layout ────
   const mobilePadding = 20;
   const mobilePotScaleX = (dims.w - mobilePadding * 2) / POT_W;
-  const mobileCanvasH = mobilePadding * 2 + POT_H * mobilePotScaleX;
+  const mobileCanvasH = mobilePadding * 2 + 20 + POT_H * mobilePotScaleX;
   const mobilePotScaleY = (mobileCanvasH - mobilePadding * 2) / POT_H;
   const sPot = Math.min(mobilePotScaleX, mobilePotScaleY);
 
   const mobilePotW = POT_W * sPot;
   const mobilePotH = POT_H * sPot;
   const mobilePotX = (dims.w - mobilePotW) / 2;
-  const mobilePotY = mobilePadding;
+  const mobilePotY = mobilePadding + 20;
 
   // Drawer
   const drawerW = dims.w * DRAWER_WIDTH_FRAC;
@@ -906,7 +906,7 @@ AS YOU LIKE.`;
   // ──── Mobile rendering ────
   if (isMobile) {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col overflow-hidden">
         {/* Logo + Instructions — shrink away together */}
         <div
           className="shrink-0 overflow-hidden"
