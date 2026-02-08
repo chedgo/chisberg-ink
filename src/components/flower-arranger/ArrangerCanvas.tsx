@@ -498,7 +498,7 @@ export function ArrangerCanvas({
   const mobilePotW = POT_W * sPot;
   const mobilePotH = POT_H * sPot;
   const mobilePotX = (dims.w - mobilePotW) / 2;
-  const mobilePotY = mobilePotTopPad;
+  const mobilePotY = mobilePotTopPad + (dims.h - mobilePotTopPad - mobileBottomPad - mobilePotH) / 2;
 
   // Drawer
   const drawerW = dims.w * DRAWER_WIDTH_FRAC;
@@ -794,7 +794,7 @@ AS YOU LIKE.`;
   // ──── Mobile read-only rendering ────
   if (readOnly && isMobile) {
     return (
-      <div ref={containerRef} className="flex-1 min-h-0">
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-hidden" style={{ touchAction: 'none' }}>
         <Stage width={dims.w} height={dims.h}>
           <Layer>
             {potImg && (
@@ -910,7 +910,7 @@ AS YOU LIKE.`;
   // ──── Mobile rendering ────
   if (isMobile) {
     return (
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden" style={{ touchAction: 'none' }}>
         {/* Logo — shrinks but stays visible */}
         <div
           className="shrink-0 flex justify-center"
