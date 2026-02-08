@@ -907,7 +907,28 @@ AS YOU LIKE.`;
   if (isMobile) {
     return (
       <div className="absolute inset-0 flex flex-col overflow-hidden">
-        {/* Logo + Instructions — shrink away together */}
+        {/* Logo — shrinks but stays visible */}
+        <div
+          className="shrink-0 flex justify-center"
+          style={{
+            paddingTop: mobileGuidanceHidden ? 16 : 32,
+            paddingBottom: mobileGuidanceHidden ? 0 : 20,
+            transition: 'padding-top 1.2s ease-in-out, padding-bottom 1.2s ease-in-out',
+          }}
+        >
+          <img
+            src="/flower-arranger/flowerslogo.png"
+            alt="Flowers logo"
+            style={{
+              width: mobileGuidanceHidden ? '30%' : '55%',
+              maxWidth: mobileGuidanceHidden ? 140 : 260,
+              transform: `rotate(${LOGO_ROT}deg)`,
+              transition: 'width 1.2s ease-in-out, max-width 1.2s ease-in-out',
+            }}
+          />
+        </div>
+
+        {/* Instructions — shrink away */}
         <div
           className="shrink-0 overflow-hidden"
           style={{
@@ -915,17 +936,6 @@ AS YOU LIKE.`;
             transition: 'max-height 1.2s ease-in-out',
           }}
         >
-          <div className="flex justify-center pt-8 pb-5">
-            <img
-              src="/flower-arranger/flowerslogo.png"
-              alt="Flowers logo"
-              style={{
-                width: '55%',
-                maxWidth: 260,
-                transform: `rotate(${LOGO_ROT}deg)`,
-              }}
-            />
-          </div>
           <div className="px-3 pb-2">
           <div className="flex gap-6 justify-center items-center">
             {instructionsText.split('\n\n•\n\n').map((para, i) => (
