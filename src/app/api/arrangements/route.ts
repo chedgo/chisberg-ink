@@ -31,3 +31,18 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ id: rows[0].id });
 }
+
+export async function PUT(request: NextRequest) {
+  const { id, artist_name, flowers } = await request.json();
+
+  const { rowCount } = await pool.query(
+    'UPDATE arrangements SET artist_name = $1, flowers = $2 WHERE id = $3',
+    [artist_name, JSON.stringify(flowers), id]
+  );
+
+  if (rowCount === 0) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
+  return NextResponse.json({ id });
+}

@@ -138,6 +138,7 @@ function FlowerArrangerInner() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isViewingShared, setIsViewingShared] = useState(false);
   const [shareStatus, setShareStatus] = useState<ShareStatus>('idle');
+  const [savedArrangementId, setSavedArrangementId] = useState<string | null>(null);
   const [mobileGuidanceHidden, setMobileGuidanceHidden] = useState(false);
 
   // Load from API if ?id= present, otherwise localStorage
@@ -209,6 +210,7 @@ function FlowerArrangerInner() {
     setSelectedId(null);
     setIsViewingShared(false);
     setMobileGuidanceHidden(false);
+    setSavedArrangementId(null);
     if (sharedId) {
       window.history.replaceState({}, '', '/flower-arranger');
     }
@@ -222,13 +224,18 @@ function FlowerArrangerInner() {
     }
     setShareStatus('sharing');
     try {
+      const method = savedArrangementId ? 'PUT' : 'POST';
+      const body = savedArrangementId
+        ? { id: savedArrangementId, artist_name: artistName, flowers }
+        : { artist_name: artistName, flowers };
       const res = await fetch('/api/arrangements', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ artist_name: artistName, flowers }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error('Failed to share');
       const { id } = await res.json();
+      setSavedArrangementId(id);
 
       const url = `${window.location.origin}/flower-arranger?id=${id}`;
       await navigator.clipboard.writeText(url);
